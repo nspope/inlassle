@@ -1,0 +1,18 @@
+Package: inlassle
+Title: What the Package Does (one line, title case)
+Version: 0.0.2.0
+Authors@R: person("Nathaniel S.", "Pope", email = "nspope@utexas.edu", role = c("aut", "cre"))
+Description: What the package does (one paragraph).
+Depends: R (>= 3.4.0)
+License: MIT
+Encoding: UTF-8
+LazyData: true
+LinkingTo: Rcpp, RcppArmadillo, RcppParallel, BH, RcppEigen
+Imports: Rcpp, RcppArmadillo, RcppParallel, BH, RcppEigen
+RcppModules: inlassle
+SystemRequirements: GNU make, C++11
+RoxygenNote: 6.0.1
+NeedsCompilation: yes
+Packaged: 2018-06-15 18:45:37 UTC; nspope
+Author: Nathaniel S. Pope [aut, cre]
+Maintainer: Nathaniel S. Pope <nspope@utexas.edu>

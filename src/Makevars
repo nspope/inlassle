@@ -1,0 +1,5 @@
+CXX_STD = CXX11
+PKG_CXXFLAGS = -I../inst/include -DDLIB_NO_GUI_SUPPORT
+PKG_LIBS = $(shell $(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()" ) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+PKG_LIBS += $(shell ${R_HOME}/bin/Rscript -e "RcppParallel::RcppParallelLibs()")
+PKG_LIBS += -lz -lpcre

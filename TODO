@@ -1,0 +1,6 @@
+# consolidate code, clean stuff up, get organized!
+# it seems that cholesky fails sometimes despite checks.
+# it seems that there are discontinuities in outer objective, e.g. _SVDDWT_7
+# gradient of conductances has a few massive entries--this seems to be where it goes to zero. It gets corrected by the (1-x)*x chain rule
+# might be better to switch to field without dispersion parameters
+# way to let range parameter/dispersion go to zero?
