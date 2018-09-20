@@ -47,33 +47,33 @@ namespace Link
     }
   };
 
-  struct LogitSill
+  struct ReciprocalLogit
   {
-    const double sill = 0.1;
-
     double operator() (const double x) const
     {
-      return sill + (1. - sill) / (1. + exp(-x));
+      return 1. + exp(-x);
     }
 
     double deriv (const double p) const
     {
-      return (p - sill) * (1. - (p - sill)/(1. - sill));
+// d(1 + exp(-x))/dx = -exp(-x)
+// p = 1 + e^-x
+// p - 1 = e^-x
+// -(p - 1) = -e^-x
+      return -(p - 1);
     }
   };
 
-  struct SoftplusSill
+  struct Softplus
   {
-    const double sill = 0.1;
-
     double operator() (const double x) const
     {
-      return sill + log(1. + exp(x));
+      return 1. + log(1. + exp(x));
     }
 
     double deriv (const double p) const
     {
-      return 1. - 1./exp(p - sill);
+      return 1. - 1./exp(p - 1.);
     }
   };
 
@@ -144,10 +144,10 @@ struct ResistanceSolver
   // wrappers for R API
   MatrixXd resistance_distances_logit (const VectorXd);
   VectorXd rd_resistance_distances_logit (MatrixXd);
-  MatrixXd resistance_distances_logit_sill (const VectorXd);
-  VectorXd rd_resistance_distances_logit_sill (MatrixXd);
-  MatrixXd resistance_distances_softplus_sill (const VectorXd);
-  VectorXd rd_resistance_distances_softplus_sill (MatrixXd);
+  MatrixXd resistance_distances_rlogit (const VectorXd);
+  VectorXd rd_resistance_distances_rlogit (MatrixXd);
+  MatrixXd resistance_distances_softplus (const VectorXd);
+  VectorXd rd_resistance_distances_softplus (MatrixXd);
   MatrixXd resistance_distances_identity (const VectorXd);
   VectorXd rd_resistance_distances_identity (MatrixXd);
 };

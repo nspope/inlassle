@@ -93,12 +93,12 @@ double ResistanceOptim::fixed_likelihood (const vec& par, const vec& fix)
   ++iter;
 
   // calculate resistance distance
-  subproblem.D.slice(0) = eigen2arma(resistance.resistance_distances<Link::SoftplusSill>(arma2eigen(par)));
+  subproblem.D.slice(0) = eigen2arma(resistance.resistance_distances<Link::ReciprocalLogit>(arma2eigen(par)));
 
   // solve subproblem, e.g. find (possibly penalized) maximum likelihood estimate of spatial parameters
   Parameters<Prior> p(subproblem, fix);
   double result = subproblem.likelihood<Spatial, Prior>(p);
-  gradient = eigen2arma(resistance.rd_resistance_distances<Link::SoftplusSill>(arma2eigen(subproblem.gradient_distance.slice(0))));
+  gradient = eigen2arma(resistance.rd_resistance_distances<Link::ReciprocalLogit>(arma2eigen(subproblem.gradient_distance.slice(0))));
 
   // verbose
   Rcpp::Rcout << iter << " " << double(subproblem.dim)*result << " " << par << std::endl;

@@ -1,6 +1,13 @@
-# consolidate code, clean stuff up, get organized!
-# it seems that cholesky fails sometimes despite checks.
-# it seems that there are discontinuities in outer objective, e.g. _SVDDWT_7
-# gradient of conductances has a few massive entries--this seems to be where it goes to zero. It gets corrected by the (1-x)*x chain rule
-# might be better to switch to field without dispersion parameters
-# way to let range parameter/dispersion go to zero?
+# -Field::newton_raphson currently does not use Hessian information, because the Hessian can be indefinite. Use an implementation of modified Cholesky to allow use of Hessian.
+# -Field::dbetabinom/score/derivatives rely on differences b/w log gamma functions that can suffer catastrophic cancellation, or otherwise crap out. This seems to happen when the concentration parameter gets large. Could use stable, mesh-based algorithm for these computations?
+# -Field should allow concentrations to get fixed to Inf and then return binomial likelihood.
+# -Field could allow the locus-specific means to be part of the laplace approximation, instead of analytically integrating them out. This might improve stability (but not sure)
+#
+# -Problem::optimize should allow fixed field that gives the parameter values that are allowed to vary. If none are allowed to vary, it should just return the likelihood. This gives a unified interface.
+#
+# -ResistanceOptim should be templated to allow choice of link
+# -ResistanceOptim::optimize should allow fixed field that is passed to Problem::optimize, and should also allow startng values that are passed to Problem::optimize. This will unify the interface.
+#
+# -ResistanceSolver links should be templated to allow parameters where necessary
+# -ResistanceSolver R api has a bunch of wrappers for link functions. Better to consolidate into a single wrapper with a switch.
+# -ResistanceSolver add inverse logit link ::: DONE 20 Sep 2018

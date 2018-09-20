@@ -34,6 +34,33 @@ test_ResistanceSolver <- function(dim=5, seed=1, parallel=FALSE)
   list(Rd, Rd2)
 }
 
+test_ResistanceSolverNL <- function(dim=5, seed=1, parallel=FALSE)
+{
+  set.seed(seed)
+  rr <- raster::raster(nrows=dim, ncols=dim, 
+                       xmn=0, xmx=1, ymn=0, ymx=1)
+  targ <- c(0, floor(dim*dim/2)-1, dim*dim-2)
+  adj <- raster::adjacent(rr, 1:(dim*dim))-1
+  adj <- t(apply(adj,1,sort))
+  adj <- adj[!duplicated(adj),]
+  spd <- cbind(rnorm(dim*dim), rnorm(dim*dim))
+  pars <- c(1,1)
+  cond <- 1/plogis(spd%*%pars)
+  L <- matrix(0,dim*dim,dim*dim)
+  for(i in 1:nrow(adj)) L[adj[i,1]+1,adj[i,2]+1] <- -0.5*cond[adj[i,1]+1] - 0.5*cond[adj[i,2]+1]
+  L <- L + t(L)
+  diag(L) <- -rowSums(L)
+  Linv <- MASS::ginv(L)
+  E <- diag(dim*dim)[,targ+1]
+  Lp <- t(E)%*%Linv%*%E
+  Rd <- t(-2*Lp + diag(Lp)) + diag(Lp)
+  Rd <- Rd*abs(det(Rd))^(-1/length(targ))
+  hi <- ResistanceSolver$new(spd, targ, adj, parallel)
+  Rd2 <- hi$resistance_distances_rlogit(c(1,1))
+#  testrd(spd, adj, targ, c(1,1), matrix(0,length(targ),length(targ))) #prints debugging information
+  list(Rd, Rd2)
+}
+
 test_ResistanceSolver2 <- function(dim=5, seed=1, parallel=FALSE)
 {
   set.seed(seed)
@@ -66,6 +93,25 @@ test_ResistanceSolver3 <- function(dim=5, seed=1, parallel=FALSE)
   Rd2 <- hi$resistance_distances_logit(pars)
   dRd2 <- hi$rd_resistance_distances_logit(dif)
   emp <- as.vector(dif) %*% numDeriv::jacobian(hi$resistance_distances_logit, pars)
+  list(Rd2, dRd2, emp)
+}
+
+test_ResistanceSolver3NL <- function(dim=5, seed=1, parallel=FALSE)
+{
+  set.seed(seed)
+  rr <- raster::raster(nrows=dim, ncols=dim, 
+                       xmn=0, xmx=1, ymn=0, ymx=1)
+  targ <- c(0, floor(dim*dim/2)-1, dim*dim-2)
+  adj <- raster::adjacent(rr, 1:(dim*dim))-1
+#  adj <- cbind(pmin(adj[,1],adj[,2]), pmax(adj[,1],adj[,2]))
+#  adj <- adj[!duplicated(adj),]
+  spd <- cbind(rnorm(dim*dim), rnorm(dim*dim))
+  dif <- matrix(rnorm(3*3), 3, 3); dif = dif + t(dif); diag(dif) = 0;
+  hi <- ResistanceSolver$new(spd, targ, adj, parallel)
+  pars <- c(1,1)
+  Rd2 <- hi$resistance_distances_rlogit(pars)
+  dRd2 <- hi$rd_resistance_distances_rlogit(dif)
+  emp <- as.vector(dif) %*% numDeriv::jacobian(hi$resistance_distances_rlogit, pars)
   list(Rd2, dRd2, emp)
 }
 
