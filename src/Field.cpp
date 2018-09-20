@@ -2,6 +2,19 @@
 #include <dlib/optimization.h> 
 #include "dlib_modified_newton.hpp"
 
+// ----------------------------------------------- utils
+
+mat psd_inv (const mat& m, double c = 1)
+{
+  mat eigvec;
+  vec eigval;
+  arma::eig_sym(eigval, eigvec, m);
+  for (uword i=0; i<eigval.n_elem; ++i)
+    if (eigval(i) <= 0.) 
+      eigval(i) = c; 
+  return eigvec * arma::diagmat(eigval) * eigvec.t();
+}
+
 // ----------------------------------------------- implementation
 
 Field::Field (const vec& y, const vec& n, const vec& mu, const vec& s, const mat& Q)  
@@ -139,28 +152,108 @@ double Field::newton_raphson (void)
   /* initial values */
   mode = mu; // ensures that missing values stay fixed at mode
 
-  /* iterations */
-  for (iter=0; iter<maxiter; ++iter)
-  {
-    if (arma::all(arma::abs(grad) < tol))
-    {
-      converge = true;
-      break;
-    }
-    if (iter)
-      mode -= arma::solve(hess, grad);
-    score (); 
-    hess = Q - arma::diagmat(d2l_dx2);
-    grad = Q * (mode - mu) - dl_dx;
-  }
+  // start dlib
+  auto ll = [&](const dlib_mat& inp) 
+  { 
+    double z, m, a, b, lp = 0;
+    mode = dlib_to_arma(inp);
+    for (uword i=0; i<dim; ++i)
+      if (n[i] > 0) 
+      {
+        z = n[i] - y[i]; m = plogis(mode[i]);
+        a = s[i]*m;      b = s[i]*(1-m);
+        lp += lgamma(n[i]+1) + lgamma(y[i]+a) + lgamma(z+b) + lgamma(a+b) -
+              lgamma(y[i]+1) - lgamma(z+1) - lgamma(n[i]+a+b) - lgamma(a) - lgamma(b);
+        //Rcpp::Rcout << lp << " " << mode[i] << " " << s[i] << " " << y[i] << " " << n[i] << std::endl; //DEBUG
+      }
+    return 0.5 * arma::dot(mode-mu, Q * (mode-mu)) - lp;
+  };
 
-  if (!converge)
-    Rcpp::warning ("Newton-Raphson failed to converge after 100 iterations");
+  auto gr = [&](const dlib_mat& inp) 
+  { 
+    double z, m, a, b;
+    mode = dlib_to_arma(inp);
+    for (uword i=0; i<dim; ++i)
+      if (n[i] > 0)
+      {
+        m = plogis(mode[i]); 
+        z = n[i] - y[i];
+        a = s[i] * m;        
+        b = s[i] * (1-m);
+        dl_dx[i] = m * (1. - m) * s[i] * (polygamma(0,y[i]+a) - polygamma(0,a) - polygamma(0,z+b) + polygamma(0,b));      
+      }
+    grad = Q * (mode - mu) - dl_dx;
+    return arma_to_dlib(grad);
+  }; 
+
+  auto he = [&](const dlib_mat& inp) 
+  { 
+    double z, m, a, b;
+    mode = dlib_to_arma(inp);
+    for (uword i=0; i<dim; ++i)
+      if (n[i] > 0)
+      {
+        m = plogis(mode[i]); 
+        z = n[i] - y[i];
+        a = s[i] * m;        
+        b = s[i] * (1-m);
+        d2l_dx2[i] = dl_dx[i] * (1. - 2*m) + 
+          pow(m * (1. - m), 2) * s[i] * s[i] * (polygamma(1,y[i]+a) - polygamma(1,a) + polygamma(1,z+b) - polygamma(1,b)); 
+      }
+    m = std::max(0., d2l_dx2.max()); // choose so as to make PSD
+    hess = Q - arma::diagmat(d2l_dx2) + m * arma::eye(arma::size(Q));
+    return arma_to_dlib(hess);
+  }; 
+
+  vec lb = mode; lb.fill(-arma::datum::inf);
+  vec ub = mode; ub.fill(arma::datum::inf);
+
+  auto pars = arma_to_dlib(mode);
+
+  auto result = dlib::find_min_box_constrained // use b/c only does backtracking, no gradient calculation (that could blow up) in line search
+    (dlib::bfgs_search_strategy (),
+     //dlib::newton_search_strategy (he),
+     dlib::objective_delta_stop_strategy (1e-9, maxiter), 
+     ll, gr, pars, arma_to_dlib(lb), arma_to_dlib(ub));
+
+  mode = dlib_to_arma(pars);
+  // end dlib
+
+//  // The big problem here is that if mu is outside of the radius of convergence, then 
+//  // Newton-Raphson will fail miserably. This could perhaps be solved via line-search?
+//  // Another problem is that it's very possible for the Hessian to be indefinite at mode = mu.
+//  //
+//  // I've got an implementation of a modified Cholesky that should work for this, in that it always returns a descent direction is is well conditioned.
+//
+//  double min_lambda;
+//  
+//  /* iterations */
+//  for (iter=0; iter<maxiter; ++iter)
+//  {
+//    if (arma::all(arma::abs(grad) < tol))
+//    {
+//      converge = true;
+//      break;
+//    }
+//    if (iter)
+//      mode -= arma::solve(hess, grad);
+//    score (); 
+//    hess = Q - arma::diagmat(d2l_dx2); // orig
+////    hess = psd_inv(Q - arma::diagmat(d2l_dx2), 1.); // try to correct?
+////    min_lambda = std::max(0., d2l_dx2.max());
+////    if (min_lambda > 0.) 
+////      hess += arma::eye(arma::size(Q)) * min_lambda;
+//    grad = Q * (mode - mu) - dl_dx;
+//  }
+//
+//  if (!converge)
+//    Rcpp::warning ("Newton-Raphson failed to converge after 100 iterations");
 
   derivatives ();
 
   /* Laplace approximation */
   vec residual = mode - mu;
+  hess = Q - arma::diagmat(d2l_dx2); 
   loglik = 0.5 * arma::dot(residual, Q * residual) - dbetabinom();
   logdet = log(arma::det(Q)); //what if no missing data? Use default? TODO
   loghes = log(arma::det(hess));

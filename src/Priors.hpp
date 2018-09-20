@@ -34,8 +34,10 @@ struct Inlassle
 {
   // Nate's preferred priors
   private:
-    const double t_mu = 0.,      
-                 t_lambda = 0.1,
+//    const double t_mu = 0.,      
+    const double t_mu = -0.5,      
+//                 t_lambda = 0.1,
+                 t_lambda = 1,
                  v_eta = 2.,
                  v_gamma = 1.,
                  s_mu = 0.5,

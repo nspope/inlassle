@@ -19,6 +19,8 @@ struct ResistanceOptim
       gradient;
 
   ResistanceOptim (const Problem&, const MatrixXd&, const UiVector&, const MatrixXi&, const double, const uword, const uword);
+  template <class Spatial, class Prior> double fixed_likelihood (const vec&, const vec&); 
+  template <class Spatial, class Prior> vec fixed_optimize (const vec&, const vec&, const double); 
   template <class Spatial, class Prior> double likelihood (const vec&); 
   template <class Spatial, class Prior> vec optimize (const vec&, const double); 
   template <class Spatial, class Prior> vec optimize_global (const vec&, const vec&); 

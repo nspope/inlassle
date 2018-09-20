@@ -21,7 +21,7 @@
   obj <- function(x) 0.5*t(x-mu[!miss])%*%Qm%*%(x-mu[!miss]) - sum(dbetabinom(x, N[!miss], Y[!miss], S[!miss]))
   obj_lp <- function(mu, S, C) inlassle_test_Field_lapapp (Y, N, mu, S, solve(C))
 
-  fit <- optim(rep(0,sum(!miss)), obj, method="BFGS")
+  fit <- optim(rep(0,sum(!miss)), obj, method="L-BFGS-B")
   hess <- numDeriv::hessian (obj, fit$par)
 
   gs <- list()
@@ -466,7 +466,7 @@
   # resistance distance
   rs <- ResistanceSolver$new(spd, targ, adj, parallel)
   pars <- c(0.5,0.5)
-  D <- array(rs$resistance_distances(pars),c(p,p,1))
+  D <- array(rs$resistance_distances_logit(pars),c(p,p,1))
   C <- cov2cor(inlassle_test_Matern_C (D, 2, 0.1, c(0.5, 1.5)))
 
   # genetic data

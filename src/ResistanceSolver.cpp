@@ -477,16 +477,34 @@ VectorXd ResistanceSolver::rd_resistance_distances_logit (MatrixXd input)
   return rd_resistance_distances<Link::Logit> (input);
 }
 
+MatrixXd ResistanceSolver::resistance_distances_logit_sill (const VectorXd input)
+{
+  return resistance_distances<Link::LogitSill> (input);
+}
+
+VectorXd ResistanceSolver::rd_resistance_distances_logit_sill (MatrixXd input)
+{
+  return rd_resistance_distances<Link::LogitSill> (input);
+}
+
+MatrixXd ResistanceSolver::resistance_distances_softplus_sill (const VectorXd input)
+{
+  return resistance_distances<Link::SoftplusSill> (input);
+}
+
+VectorXd ResistanceSolver::rd_resistance_distances_softplus_sill (MatrixXd input)
+{
+  return rd_resistance_distances<Link::SoftplusSill> (input);
+}
+
 MatrixXd ResistanceSolver::resistance_distances_identity (const VectorXd input)
 {
-  //return resistance_distances<Link::Identity> (input);
-  return rd_resistance_distances<Link::Logit> (input);
+  return resistance_distances<Link::Identity> (input);
 }
 
 VectorXd ResistanceSolver::rd_resistance_distances_identity (MatrixXd input)
 {
-  //return rd_resistance_distances<Link::Identity> (input);
-  return rd_resistance_distances<Link::Logit> (input);
+  return rd_resistance_distances<Link::Identity> (input);
 }
 
 // [[Rcpp::export]]
@@ -527,8 +545,12 @@ RCPP_MODULE(inlassle) {
   class_<ResistanceSolver>("ResistanceSolver")
     .constructor<Eigen::MatrixXd, std::vector<unsigned>, Eigen::MatrixXi, bool>()
     .method("resistance_distances_logit", &ResistanceSolver::resistance_distances_logit)
+    .method("resistance_distances_logit_sill", &ResistanceSolver::resistance_distances_logit_sill)
+    .method("resistance_distances_softplus_sill", &ResistanceSolver::resistance_distances_softplus_sill)
     .method("resistance_distances_identity", &ResistanceSolver::resistance_distances_identity)
     .method("rd_resistance_distances_logit", &ResistanceSolver::rd_resistance_distances_logit)
+    .method("rd_resistance_distances_logit_sill", &ResistanceSolver::rd_resistance_distances_logit_sill)
+    .method("rd_resistance_distances_softplus_sill", &ResistanceSolver::rd_resistance_distances_softplus_sill)
     .method("rd_resistance_distances_identity", &ResistanceSolver::rd_resistance_distances_identity)
     .method("getAdjacency", &ResistanceSolver::getAdjacency)
     .method("getLaplacianDiagonal", &ResistanceSolver::getLaplacianDiagonal)

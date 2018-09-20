@@ -33,6 +33,13 @@ double Problem::likelihood (const Parameters<Prior>& param)
 {
   ++iter;
 
+  //DEBUG
+//  param.t.print("t");
+//  param.v.print("v");
+//  param.s.print("s");
+//  param.b.print("b");
+  //
+
   Likelihood<Spatial, Prior> loglik (*this, param);
 
   gradient = loglik.gradient(param);
@@ -40,6 +47,43 @@ double Problem::likelihood (const Parameters<Prior>& param)
   gradient_distance = loglik.gradient_distance (param);
 
   return loglik.loglikelihood;
+}
+
+template <class Spatial, class Prior>
+vec Problem::optimize_fixed (const vec& start, const double tol, const uvec& fix)
+{
+  if (fix.n_elem != start.n_elem)
+    Rcpp::stop ("optimize_fixed: inconsistent dimensions");
+
+  iter = 0;
+
+  uvec var_pars = arma::find (fix == 0);
+  vec  arma_inp = start;
+
+  /* objective, gradient */
+  auto loglik = [&](const dlib_mat& inp) 
+  { 
+    arma_inp.elem (var_pars) = dlib_to_arma(inp);
+    Parameters<Prior> p(*this, arma_inp); 
+    return likelihood<Spatial, Prior>(p); 
+  };             
+  auto grad = [&](const dlib_mat& inp) 
+  { 
+    return arma_to_dlib(gradient.elem (var_pars)); 
+  }; 
+
+  /* Either Newton or BFGS is used to minimize objective. */
+  auto pars = arma_to_dlib (arma_inp.elem(var_pars));
+  auto result = dlib::find_min
+    (dlib::bfgs_search_strategy (),
+     dlib::objective_delta_stop_strategy (tol/double(n_loci), maxiter), // NOTE: rescaled by dimension
+     loglik, grad, pars,
+     0.); // minimum function value for dlib::find_min()
+
+  /* return vector of length start.n_elem + 1, where first element is loglikelihood */
+  vec out = { result };
+  arma_inp.elem(var_pars) = dlib_to_arma(pars);
+  return arma::join_cols(out, arma_inp); 
 }
 
 template <class Spatial, class Prior>
@@ -104,6 +148,14 @@ arma::vec test_Problem_optimize (arma::mat N, arma::mat Y, arma::mat X, arma::cu
   Problem prob (N, Y, X, D, 2, parallel);
   vec start = arma::zeros<vec>(prob.n_sppar + prob.n_vcomp + prob.n_popul + prob.n_fixef);
   vec out = prob.optimize<Covariance::Matern, Prior::MLE>(start, tol);
+  return out;
+}
+
+// [[Rcpp::export("inlassle_test_Problem_optimize_fixed")]]
+arma::vec test_Problem_optimize_fixed (arma::mat N, arma::mat Y, arma::mat X, arma::cube D, bool parallel, double tol, double nu, arma::vec start, arma::uvec fix) 
+{
+  Problem prob (N, Y, X, D, nu, parallel);
+  vec out = prob.optimize_fixed<Covariance::Matern, Prior::MLE>(start, tol, fix);
   return out;
 }
 

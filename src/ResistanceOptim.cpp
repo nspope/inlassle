@@ -1,6 +1,7 @@
 #include "ResistanceOptim.hpp"
 #include "Priors.hpp"
 #include "Matern.hpp"
+#include "Parameters.hpp"
 #include <dlib/optimization.h>
 #include <dlib/global_optimization.h>
 
@@ -84,6 +85,49 @@ ResistanceOptim::ResistanceOptim (const Problem& subproblem, const MatrixXd& spa
 {
   if (targets.size() != subproblem.N.n_rows)
     Rcpp::stop ("ResistanceOptim: inconsistent dimensions");
+}
+
+template <class Spatial, class Prior>
+double ResistanceOptim::fixed_likelihood (const vec& par, const vec& fix)
+{
+  ++iter;
+
+  // calculate resistance distance
+  subproblem.D.slice(0) = eigen2arma(resistance.resistance_distances<Link::SoftplusSill>(arma2eigen(par)));
+
+  // solve subproblem, e.g. find (possibly penalized) maximum likelihood estimate of spatial parameters
+  Parameters<Prior> p(subproblem, fix);
+  double result = subproblem.likelihood<Spatial, Prior>(p);
+  gradient = eigen2arma(resistance.rd_resistance_distances<Link::SoftplusSill>(arma2eigen(subproblem.gradient_distance.slice(0))));
+
+  // verbose
+  Rcpp::Rcout << iter << " " << double(subproblem.dim)*result << " " << par << std::endl;
+//  print (par, result);
+
+  return result;
+}
+
+template <class Spatial, class Prior>
+vec ResistanceOptim::fixed_optimize (const vec& start, const vec& fix, const double outer_tol) 
+{
+  if (start.n_elem != resistance.npars)
+    Rcpp::stop("ResistanceOptim: inconsistent dimensions");
+
+  iter = 0;
+
+  auto loglik = [&] (const dlib_mat& par) { return fixed_likelihood<Spatial, Prior>(dlib2arma(par), fix); };
+  auto grad   = [&] (const dlib_mat& par) { return arma2dlib(gradient); };
+
+  auto pars = arma2dlib (start);
+
+  auto result = dlib::find_min
+    (dlib::bfgs_search_strategy (),
+     dlib::objective_delta_stop_strategy (outer_tol/double(subproblem.dim), maxiter), // NOTE: rescaled by dimension
+     loglik, grad, pars,
+     0.); // minimum function value for dlib::find_min()
+
+  vec out = { result };
+  return arma::join_cols(out, dlib2arma(pars)); 
 }
 
 template <class Spatial, class Prior>
@@ -204,12 +248,26 @@ Rcpp::List test_ResistanceOptim_likelihood (const arma::vec& pars, const arma::m
                              Rcpp::_["subproblem_gradient"] = model.subproblem.gradient);
 }
 
+// [[Rcpp::export("inlassle_test_ResistanceOptim_fixed_optimize")]]
+Rcpp::List test_ResistanceOptim_fixed_optimize (const arma::vec& pars, const arma::vec& fix, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, 
+                                                const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose)
+{
+  Problem subproblem (N, Y, X, D, 2, true);
+  ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, verbose);
+  auto result = model.fixed_optimize<Covariance::Matern, Prior::MLE> (pars, fix, 1e-7);
+  return Rcpp::List::create (Rcpp::_["loglik"] = result(0),
+                             Rcpp::_["par"] = result.tail(result.n_elem - 1),
+                             Rcpp::_["start"] = fix,
+                             Rcpp::_["gradient"] = model.gradient,
+                             Rcpp::_["subproblem_gradient"] = model.subproblem.gradient);
+}
+
 // [[Rcpp::export("inlassle_test_ResistanceOptim_optimize")]]
 Rcpp::List test_ResistanceOptim_optimize (const arma::vec& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, 
-                                          const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A)
+                                          const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose)
 {
-  Problem subproblem (N, Y, X, D, 2, false);
-  ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, 1);
+  Problem subproblem (N, Y, X, D, 2, true);
+  ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, verbose);
   auto result = model.optimize<Covariance::Matern, Prior::Penalized> (pars, 1e-7);
   return Rcpp::List::create (Rcpp::_["loglik"] = result(0),
                              Rcpp::_["par"] = result.tail(result.n_elem - 1),
@@ -220,10 +278,10 @@ Rcpp::List test_ResistanceOptim_optimize (const arma::vec& pars, const arma::mat
 
 // [[Rcpp::export("inlassle_test_ResistanceOptim_optimize_global")]]
 Rcpp::List test_ResistanceOptim_optimize_global (const arma::vec& lb, const arma::vec& ub, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, 
-                                          const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A)
+                                          const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose)
 {
-  Problem subproblem (N, Y, X, D, 2, false);
-  ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, 1);
+  Problem subproblem (N, Y, X, D, 2, true);
+  ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, verbose);
   auto result = model.optimize_global<Covariance::Matern, Prior::Penalized> (lb, ub);
   return Rcpp::List::create (Rcpp::_["loglik"] = result(0),
                              Rcpp::_["par"] = result.tail(result.n_elem - 1),
@@ -240,6 +298,60 @@ Rcpp::List test_ResistanceOptim_grid (const arma::mat& pars, const arma::mat& N,
   ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, 1);
   cube rd;
   auto result = model.grid<Covariance::Matern, Prior::Penalized> (pars, rd);
+  return Rcpp::List::create (Rcpp::_["loglik"] = result,
+                             Rcpp::_["pars"] = pars,
+                             Rcpp::_["rd"] = rd);
+}
+
+// [[Rcpp::export("inlassle_test_ResistanceOptim_priors_likelihood")]]
+Rcpp::List test_ResistanceOptim_priors_likelihood (const arma::vec& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, 
+                                            const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A)
+{
+  Problem subproblem (N, Y, X, D, 2, false);
+  ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, 1);
+  double ll = model.likelihood<Covariance::Matern, Prior::Inlassle> (pars);
+  return Rcpp::List::create (Rcpp::_["loglik"] = ll,
+                             Rcpp::_["start"] = model.start,
+                             Rcpp::_["gradient"] = model.gradient,
+                             Rcpp::_["subproblem_gradient"] = model.subproblem.gradient);
+}
+
+// [[Rcpp::export("inlassle_test_ResistanceOptim_priors_optimize")]]
+Rcpp::List test_ResistanceOptim_priors_optimize (const arma::vec& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, 
+                                          const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose)
+{
+  Problem subproblem (N, Y, X, D, 2, true);
+  ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, verbose);
+  auto result = model.optimize<Covariance::Matern, Prior::Inlassle> (pars, 1e-7);
+  return Rcpp::List::create (Rcpp::_["loglik"] = result(0),
+                             Rcpp::_["par"] = result.tail(result.n_elem - 1),
+                             Rcpp::_["start"] = model.start,
+                             Rcpp::_["gradient"] = model.gradient,
+                             Rcpp::_["subproblem_gradient"] = model.subproblem.gradient);
+}
+
+// [[Rcpp::export("inlassle_test_ResistanceOptim_priors_optimize_global")]]
+Rcpp::List test_ResistanceOptim_priors_optimize_global (const arma::vec& lb, const arma::vec& ub, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, 
+                                          const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose)
+{
+  Problem subproblem (N, Y, X, D, 2, true);
+  ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, verbose);
+  auto result = model.optimize_global<Covariance::Matern, Prior::Inlassle> (lb, ub);
+  return Rcpp::List::create (Rcpp::_["loglik"] = result(0),
+                             Rcpp::_["par"] = result.tail(result.n_elem - 1),
+                             Rcpp::_["start"] = model.start,
+                             Rcpp::_["gradient"] = model.gradient,
+                             Rcpp::_["subproblem_gradient"] = model.subproblem.gradient);
+}
+
+// [[Rcpp::export("inlassle_test_ResistanceOptim_priors_grid")]]
+Rcpp::List test_ResistanceOptim_priors_grid (const arma::mat& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, 
+                                          const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A)
+{
+  Problem subproblem (N, Y, X, D, 2, false);
+  ResistanceOptim model (subproblem, Z, T, A, 1e-10, 100, 1);
+  cube rd;
+  auto result = model.grid<Covariance::Matern, Prior::Inlassle> (pars, rd);
   return Rcpp::List::create (Rcpp::_["loglik"] = result,
                              Rcpp::_["pars"] = pars,
                              Rcpp::_["rd"] = rd);

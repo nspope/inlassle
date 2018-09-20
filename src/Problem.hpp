@@ -37,6 +37,7 @@ struct Problem
   Problem (const mat&, const mat&, const mat&, const cube&, const double, const bool);
   template <class Spatial, class Prior> double likelihood (const Parameters<Prior>&);
   template <class Spatial, class Prior> vec optimize (const vec&, const double);
+  template <class Spatial, class Prior> vec optimize_fixed (const vec&, const double, const uvec&);
 };
 
 #endif /* PROBLEM_H */

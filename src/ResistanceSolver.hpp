@@ -47,6 +47,36 @@ namespace Link
     }
   };
 
+  struct LogitSill
+  {
+    const double sill = 0.1;
+
+    double operator() (const double x) const
+    {
+      return sill + (1. - sill) / (1. + exp(-x));
+    }
+
+    double deriv (const double p) const
+    {
+      return (p - sill) * (1. - (p - sill)/(1. - sill));
+    }
+  };
+
+  struct SoftplusSill
+  {
+    const double sill = 0.1;
+
+    double operator() (const double x) const
+    {
+      return sill + log(1. + exp(x));
+    }
+
+    double deriv (const double p) const
+    {
+      return 1. - 1./exp(p - sill);
+    }
+  };
+
 } // namespace Link
 
 //' @export ResistanceSolver
@@ -114,6 +144,10 @@ struct ResistanceSolver
   // wrappers for R API
   MatrixXd resistance_distances_logit (const VectorXd);
   VectorXd rd_resistance_distances_logit (MatrixXd);
+  MatrixXd resistance_distances_logit_sill (const VectorXd);
+  VectorXd rd_resistance_distances_logit_sill (MatrixXd);
+  MatrixXd resistance_distances_softplus_sill (const VectorXd);
+  VectorXd rd_resistance_distances_softplus_sill (MatrixXd);
   MatrixXd resistance_distances_identity (const VectorXd);
   VectorXd rd_resistance_distances_identity (MatrixXd);
 };
