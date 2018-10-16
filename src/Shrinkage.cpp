@@ -1,6 +1,8 @@
 #include "Shrinkage.hpp"
 #include "Problem.hpp"
 
+// FIXME: I'm pretty sure this is NOT being used anymore, as there's no shrinkage estimator of the Hessian being used
+
 Gradient::Gradient (const Problem& data) 
   : dD (arma::zeros<cube>(data.n_popul, data.n_popul, data.n_sppar-1))
   , dC (arma::zeros<mat>(data.n_popul, data.n_popul))
@@ -167,9 +169,10 @@ arma::vec inlassle_test_Gradient (arma::mat dt, arma::mat dv, arma::mat ds, arma
 {
   mat Y = arma::ones<mat>(ds.n_rows, ds.n_cols),
       N = arma::ones<mat>(ds.n_rows, ds.n_cols),
+      Z = arma::eye<mat>(ds.n_rows, ds.n_rows),
       X = arma::ones<mat>(ds.n_rows, db.n_rows);
   cube D = arma::zeros<cube>(ds.n_rows, ds.n_rows, dt.n_rows - 1);
-  Problem prob (N, Y, X, D, 2, false);
+  Problem prob (N, Y, X, Z, D, 2, false);
   Gradient grad (prob);
 
   for (uword i = 0; i < ds.n_cols; ++i)
@@ -188,9 +191,10 @@ arma::mat inlassle_test_Gradient_dC (arma::cube dC)
 {
   mat Y = arma::ones<mat>(dC.n_rows, dC.n_slices),
       N = arma::ones<mat>(dC.n_rows, dC.n_slices),
+      Z = arma::eye<mat>(dC.n_rows, dC.n_rows),
       X = arma::ones<mat>(dC.n_rows, 1);
   cube D = arma::zeros<cube>(dC.n_rows, dC.n_rows, 1);
-  Problem prob (N, Y, X, D, 2, false);
+  Problem prob (N, Y, X, Z, D, 2, false);
   Gradient grad (prob);
 
   for (uword i = 0; i < dC.n_slices; ++i)
@@ -204,9 +208,10 @@ arma::mat inlassle_test_Hessian (arma::mat dt, arma::mat dv, arma::mat ds, arma:
 {
   mat Y = arma::ones<mat>(ds.n_rows, ds.n_cols),
       N = arma::ones<mat>(ds.n_rows, ds.n_cols),
+      Z = arma::eye<mat>(ds.n_rows, ds.n_rows),
       X = arma::ones<mat>(ds.n_rows, db.n_rows);
   cube D = arma::zeros<cube>(ds.n_rows, ds.n_rows, dt.n_rows - 1);
-  Problem prob (N, Y, X, D, 2, false);
+  Problem prob (N, Y, X, Z, D, 2, false);
   Hessian hess (prob);
 
   for (uword i = 0; i < ds.n_cols; ++i)

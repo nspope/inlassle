@@ -21,7 +21,7 @@ template <class Prior>
 Parameters<Prior>::Parameters (const Problem& data, const vec& p) 
   : t (data.n_sppar, arma::fill::zeros)
   , v (data.n_vcomp, arma::fill::zeros)
-  , s (data.n_popul, arma::fill::zeros)
+  , s (data.n_dispr, arma::fill::zeros)
   , b (data.n_fixef, arma::fill::zeros)
   , LLt (data.n_fixef, data.n_fixef, arma::fill::zeros)
   , dC_dv (data.n_popul*data.n_popul, data.n_vcomp, arma::fill::zeros)
@@ -94,12 +94,12 @@ vec Parameters<Prior>::v_constrained (vec vu)
 template <class Prior>
 vec Parameters<Prior>::s_constrained (vec su)
   /* transform unconstrained concentrations to constrained concentrations
-   *   exp ()
+   *   .. currently none ...
    */
 {
   if (!arma::is_finite(su)) 
     Rcpp::stop ("Parameters: invalid value for concentration parameters");
-  return arma::exp(su);
+  return su;
 }
 
 template <class Prior>
@@ -130,7 +130,7 @@ vec Parameters<Prior>::gradient_unconstrained (void) const
 
   vec dt_dtu = t,                              // exp(tu)
       dv_dvu = arma::ones<vec>(arma::size(v)), // 1 if not diagonal element
-      ds_dsu = s,                              // exp(su)
+      ds_dsu = arma::ones<vec>(arma::size(s)), // 1
       db_dbu = arma::ones<vec>(arma::size(b)); // 1
 
   for (uword i=0; i<b.n_elem; ++i)
@@ -269,11 +269,12 @@ Rcpp::List test_Parameters (arma::vec t, arma::vec v, arma::vec s, arma::vec b)
 {
   /* helper that creates Parameters object used for tests */
   mat X = arma::ones<mat> (s.n_elem, b.n_elem),
+      Z = arma::eye<mat> (s.n_elem, s.n_elem),
       Y = arma::ones<mat> (s.n_elem, 1),
       N = arma::ones<mat> (s.n_elem, 1);
   cube D = arma::ones<cube> (s.n_elem, s.n_elem, t.n_elem-1);
 
-  Problem prob (N, Y, X, D, 2, false);
+  Problem prob (N, Y, X, Z, D, 2, false);
   vec p = arma::join_vert(t, arma::join_vert(v, arma::join_vert(s, b)));
   Parameters<Prior::MLE> parm (prob, p);
 

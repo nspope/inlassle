@@ -34,10 +34,8 @@ struct Inlassle
 {
   // Nate's preferred priors
   private:
-//    const double t_mu = 0.,      
-    const double t_mu = -0.5,      
-//                 t_lambda = 0.1,
-                 t_lambda = 1,
+    const double t_mu = 0.,      
+                 t_lambda = 0.1,
                  v_eta = 2.,
                  v_gamma = 1.,
                  s_mu = 0.5,
@@ -48,7 +46,7 @@ struct Inlassle
   public:
     Gaussian     t;
     LKJ          v;
-    LogBetaPrime s;
+    LogBetaPrime s; // FIXME this is only sensical if Z is a matrix of dummy variables. Also, it's now incorrect as we now parameterize as dispersions (e.g. inverse of how it was before).
     Gaussian     b;
 
   Inlassle (const vec& pars, const vec& t, const vec& v, const vec& s, const vec& b) 

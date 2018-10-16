@@ -10,8 +10,9 @@
 template <class Spatial, class Prior>
 Likelihood<Spatial, Prior>::Likelihood (const Problem& data, const Parameters<Prior>& par) 
   : data (data)
-  , cov (data.D, data.nu, 0.1, par.t) // hardcoded delta = 0.1, change at some point TODO
-  , s (par.s)
+  , cov (data.D, data.nu, 0.1, par.t) // FIXME hardcoded delta = 0.1, make set-able
+//  , s (par.s)
+  , s (arma::exp(-data.Z * par.s))
   , mu (data.X * par.b)
 //  , Q (arma::inv_sympd(cov.C + data.X * par.LLt * data.X.t()))
   , Q (precision(data, par))
@@ -95,9 +96,15 @@ vec Likelihood<Spatial, Prior>::gradient (const Parameters<Prior>& par) const
       grad_s = arma::mean(dlp_ds, 1),
       grad_mu = arma::mean(dlp_dmu, 1);
 
+  // let s = exp(-S), S = Z * z
+  // by the chain rule, we have
+  // dlp/dS = dlp/ds % d(exp(-S))/dS = dlp/ds % -exp(-S) = dlp/ds % -s
+  // dlp/dz = dlp/dS % d(Z * z)/dz = Z.t() * dlp/dS
+  grad_s %= -s; 
+
   return arma::join_vert(cov.dC_dt.t() * grad_C,
          arma::join_vert(par.dC_dv.t() * grad_C,
-         arma::join_vert(grad_s, data.X.t() * grad_mu))) %
+         arma::join_vert(data.Z.t() * grad_s, data.X.t() * grad_mu))) %
          par.gradient_unconstrained() + 
          par.gradient_prior()/double(data.n_loci);
 }
@@ -121,11 +128,14 @@ mat Likelihood<Spatial, Prior>::fisher (const Parameters<Prior>& par) const
   
   mat dlp_dt = cov.dC_dt.t() * dlp_dC,
       dlp_dv = par.dC_dv.t() * dlp_dC,
+      dlp_dS = dlp_ds.each_row() % -s, // see ::gradient above
       dlp_db = data.X.t() * dlp_dmu;
+
+  dlp_dS = data.Z.t() * dlp_dS; // see ::gradient above
 
   mat scatter = arma::join_vert(dlp_dt,
                 arma::join_vert(dlp_dv,
-                arma::join_vert(dlp_ds, dlp_db)));
+                arma::join_vert(dlp_dS, dlp_db)));
 
   scatter = (scatter * scatter.t()) % par.hessian_unconstrained() + par.hessian_prior(); 
   scatter /= double(data.n_loci);
@@ -149,9 +159,9 @@ template class Likelihood<Covariance::Matern, Prior::Inlassle>;
 // ----------------------------------------------- tests
 
 // [[Rcpp::export("inlassle_test_Likelihood")]]
-Rcpp::List test_Likelihood (arma::mat N, arma::mat Y, arma::mat X, arma::cube D, arma::vec t, arma::vec v, arma::vec s, arma::vec b, bool parallel) 
+Rcpp::List test_Likelihood (arma::mat N, arma::mat Y, arma::mat X, arma::mat Z, arma::cube D, arma::vec t, arma::vec v, arma::vec s, arma::vec b, bool parallel) 
 {
-  Problem prob (N, Y, X, D, 2, parallel);
+  Problem prob (N, Y, X, Z, D, 2, parallel);
   vec p = arma::join_vert(t, arma::join_vert(v, arma::join_vert(s, b)));
   Parameters<Prior::MLE> parm (prob, p);
   Likelihood<Covariance::Matern, Prior::MLE> lik (prob, parm);

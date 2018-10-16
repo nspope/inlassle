@@ -49,8 +49,8 @@ inlassle_test_Gaussian_dC_dD <- function(D, nu, delta, pars) {
     .Call('_inlassle_test_Gaussian_dC_dD', PACKAGE = 'inlassle', D, nu, delta, pars)
 }
 
-inlassle_test_Likelihood <- function(N, Y, X, D, t, v, s, b, parallel) {
-    .Call('_inlassle_test_Likelihood', PACKAGE = 'inlassle', N, Y, X, D, t, v, s, b, parallel)
+inlassle_test_Likelihood <- function(N, Y, X, Z, D, t, v, s, b, parallel) {
+    .Call('_inlassle_test_Likelihood', PACKAGE = 'inlassle', N, Y, X, Z, D, t, v, s, b, parallel)
 }
 
 inlassle_test_Matern_C <- function(D, nu, delta, pars) {
@@ -93,64 +93,28 @@ inlassle_test_LogBetaPrime <- function(x, mu, delta) {
     .Call('_inlassle_test_LogBetaPrime', PACKAGE = 'inlassle', x, mu, delta)
 }
 
-inlassle_test_Problem_likelihood <- function(N, Y, X, D, t, v, s, b, parallel) {
-    .Call('_inlassle_test_Problem_likelihood', PACKAGE = 'inlassle', N, Y, X, D, t, v, s, b, parallel)
+inlassle_test_Problem_likelihood <- function(N, Y, X, Z, D, t, v, s, b, parallel) {
+    .Call('_inlassle_test_Problem_likelihood', PACKAGE = 'inlassle', N, Y, X, Z, D, t, v, s, b, parallel)
 }
 
-inlassle_test_Problem_plikelihood <- function(N, Y, X, D, t, v, s, b, parallel) {
-    .Call('_inlassle_test_Problem_plikelihood', PACKAGE = 'inlassle', N, Y, X, D, t, v, s, b, parallel)
+inlassle_test_Problem_optimize <- function(N, Y, X, Z, D, f, parallel, tol) {
+    .Call('_inlassle_test_Problem_optimize', PACKAGE = 'inlassle', N, Y, X, Z, D, f, parallel, tol)
 }
 
-inlassle_test_Problem_optimize <- function(N, Y, X, D, parallel, tol) {
-    .Call('_inlassle_test_Problem_optimize', PACKAGE = 'inlassle', N, Y, X, D, parallel, tol)
+inlassle_test_ResistanceOptim_likelihood <- function(pars, variable, N, Y, X, Z, D, S, T, A) {
+    .Call('_inlassle_test_ResistanceOptim_likelihood', PACKAGE = 'inlassle', pars, variable, N, Y, X, Z, D, S, T, A)
 }
 
-inlassle_test_Problem_optimize_fixed <- function(N, Y, X, D, parallel, tol, nu, start, fix) {
-    .Call('_inlassle_test_Problem_optimize_fixed', PACKAGE = 'inlassle', N, Y, X, D, parallel, tol, nu, start, fix)
+inlassle_test_ResistanceOptim_optimize <- function(pars, variable, N, Y, X, Z, D, S, T, A, verbose) {
+    .Call('_inlassle_test_ResistanceOptim_optimize', PACKAGE = 'inlassle', pars, variable, N, Y, X, Z, D, S, T, A, verbose)
 }
 
-inlassle_test_Problem_penalize <- function(N, Y, X, D, parallel, tol) {
-    .Call('_inlassle_test_Problem_penalize', PACKAGE = 'inlassle', N, Y, X, D, parallel, tol)
+inlassle_test_ResistanceOptim_optimize_global <- function(lb, ub, variable, N, Y, X, Z, D, S, T, A, verbose) {
+    .Call('_inlassle_test_ResistanceOptim_optimize_global', PACKAGE = 'inlassle', lb, ub, variable, N, Y, X, Z, D, S, T, A, verbose)
 }
 
-inlassle_test_Problem_priors <- function(N, Y, X, D, parallel, tol) {
-    .Call('_inlassle_test_Problem_priors', PACKAGE = 'inlassle', N, Y, X, D, parallel, tol)
-}
-
-inlassle_test_ResistanceOptim_likelihood <- function(pars, N, Y, X, D, Z, T, A) {
-    .Call('_inlassle_test_ResistanceOptim_likelihood', PACKAGE = 'inlassle', pars, N, Y, X, D, Z, T, A)
-}
-
-inlassle_test_ResistanceOptim_fixed_optimize <- function(pars, fix, N, Y, X, D, Z, T, A, verbose) {
-    .Call('_inlassle_test_ResistanceOptim_fixed_optimize', PACKAGE = 'inlassle', pars, fix, N, Y, X, D, Z, T, A, verbose)
-}
-
-inlassle_test_ResistanceOptim_optimize <- function(pars, N, Y, X, D, Z, T, A, verbose) {
-    .Call('_inlassle_test_ResistanceOptim_optimize', PACKAGE = 'inlassle', pars, N, Y, X, D, Z, T, A, verbose)
-}
-
-inlassle_test_ResistanceOptim_optimize_global <- function(lb, ub, N, Y, X, D, Z, T, A, verbose) {
-    .Call('_inlassle_test_ResistanceOptim_optimize_global', PACKAGE = 'inlassle', lb, ub, N, Y, X, D, Z, T, A, verbose)
-}
-
-inlassle_test_ResistanceOptim_grid <- function(pars, N, Y, X, D, Z, T, A) {
-    .Call('_inlassle_test_ResistanceOptim_grid', PACKAGE = 'inlassle', pars, N, Y, X, D, Z, T, A)
-}
-
-inlassle_test_ResistanceOptim_priors_likelihood <- function(pars, N, Y, X, D, Z, T, A) {
-    .Call('_inlassle_test_ResistanceOptim_priors_likelihood', PACKAGE = 'inlassle', pars, N, Y, X, D, Z, T, A)
-}
-
-inlassle_test_ResistanceOptim_priors_optimize <- function(pars, N, Y, X, D, Z, T, A, verbose) {
-    .Call('_inlassle_test_ResistanceOptim_priors_optimize', PACKAGE = 'inlassle', pars, N, Y, X, D, Z, T, A, verbose)
-}
-
-inlassle_test_ResistanceOptim_priors_optimize_global <- function(lb, ub, N, Y, X, D, Z, T, A, verbose) {
-    .Call('_inlassle_test_ResistanceOptim_priors_optimize_global', PACKAGE = 'inlassle', lb, ub, N, Y, X, D, Z, T, A, verbose)
-}
-
-inlassle_test_ResistanceOptim_priors_grid <- function(pars, N, Y, X, D, Z, T, A) {
-    .Call('_inlassle_test_ResistanceOptim_priors_grid', PACKAGE = 'inlassle', pars, N, Y, X, D, Z, T, A)
+inlassle_test_ResistanceOptim_grid <- function(pars, variable, N, Y, X, Z, D, S, T, A) {
+    .Call('_inlassle_test_ResistanceOptim_grid', PACKAGE = 'inlassle', pars, variable, N, Y, X, Z, D, S, T, A)
 }
 
 testlink <- function() {

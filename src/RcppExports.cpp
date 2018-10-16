@@ -185,21 +185,22 @@ BEGIN_RCPP
 END_RCPP
 }
 // test_Likelihood
-Rcpp::List test_Likelihood(arma::mat N, arma::mat Y, arma::mat X, arma::cube D, arma::vec t, arma::vec v, arma::vec s, arma::vec b, bool parallel);
-RcppExport SEXP _inlassle_test_Likelihood(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP tSEXP, SEXP vSEXP, SEXP sSEXP, SEXP bSEXP, SEXP parallelSEXP) {
+Rcpp::List test_Likelihood(arma::mat N, arma::mat Y, arma::mat X, arma::mat Z, arma::cube D, arma::vec t, arma::vec v, arma::vec s, arma::vec b, bool parallel);
+RcppExport SEXP _inlassle_test_Likelihood(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP tSEXP, SEXP vSEXP, SEXP sSEXP, SEXP bSEXP, SEXP parallelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type N(NSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type t(tSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type v(vSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Likelihood(N, Y, X, D, t, v, s, b, parallel));
+    rcpp_result_gen = Rcpp::wrap(test_Likelihood(N, Y, X, Z, D, t, v, s, b, parallel));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -334,277 +335,123 @@ BEGIN_RCPP
 END_RCPP
 }
 // test_Problem_likelihood
-Rcpp::List test_Problem_likelihood(arma::mat N, arma::mat Y, arma::mat X, arma::cube D, arma::vec t, arma::vec v, arma::vec s, arma::vec b, bool parallel);
-RcppExport SEXP _inlassle_test_Problem_likelihood(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP tSEXP, SEXP vSEXP, SEXP sSEXP, SEXP bSEXP, SEXP parallelSEXP) {
+Rcpp::List test_Problem_likelihood(arma::mat N, arma::mat Y, arma::mat X, arma::mat Z, arma::cube D, arma::vec t, arma::vec v, arma::vec s, arma::vec b, bool parallel);
+RcppExport SEXP _inlassle_test_Problem_likelihood(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP tSEXP, SEXP vSEXP, SEXP sSEXP, SEXP bSEXP, SEXP parallelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type N(NSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type t(tSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type v(vSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Problem_likelihood(N, Y, X, D, t, v, s, b, parallel));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Problem_plikelihood
-Rcpp::List test_Problem_plikelihood(arma::mat N, arma::mat Y, arma::mat X, arma::cube D, arma::vec t, arma::vec v, arma::vec s, arma::vec b, bool parallel);
-RcppExport SEXP _inlassle_test_Problem_plikelihood(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP tSEXP, SEXP vSEXP, SEXP sSEXP, SEXP bSEXP, SEXP parallelSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type t(tSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type v(vSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
-    Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Problem_plikelihood(N, Y, X, D, t, v, s, b, parallel));
+    rcpp_result_gen = Rcpp::wrap(test_Problem_likelihood(N, Y, X, Z, D, t, v, s, b, parallel));
     return rcpp_result_gen;
 END_RCPP
 }
 // test_Problem_optimize
-arma::vec test_Problem_optimize(arma::mat N, arma::mat Y, arma::mat X, arma::cube D, bool parallel, double tol);
-RcppExport SEXP _inlassle_test_Problem_optimize(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP parallelSEXP, SEXP tolSEXP) {
+arma::vec test_Problem_optimize(arma::mat N, arma::mat Y, arma::mat X, arma::vec Z, arma::cube D, arma::uvec f, bool parallel, double tol);
+RcppExport SEXP _inlassle_test_Problem_optimize(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP fSEXP, SEXP parallelSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type N(NSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type f(fSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Problem_optimize(N, Y, X, D, parallel, tol));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Problem_optimize_fixed
-arma::vec test_Problem_optimize_fixed(arma::mat N, arma::mat Y, arma::mat X, arma::cube D, bool parallel, double tol, double nu, arma::vec start, arma::uvec fix);
-RcppExport SEXP _inlassle_test_Problem_optimize_fixed(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP parallelSEXP, SEXP tolSEXP, SEXP nuSEXP, SEXP startSEXP, SEXP fixSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
-    Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type start(startSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type fix(fixSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Problem_optimize_fixed(N, Y, X, D, parallel, tol, nu, start, fix));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Problem_penalize
-arma::vec test_Problem_penalize(arma::mat N, arma::mat Y, arma::mat X, arma::cube D, bool parallel, double tol);
-RcppExport SEXP _inlassle_test_Problem_penalize(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP parallelSEXP, SEXP tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
-    Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Problem_penalize(N, Y, X, D, parallel, tol));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Problem_priors
-arma::vec test_Problem_priors(arma::mat N, arma::mat Y, arma::mat X, arma::cube D, bool parallel, double tol);
-RcppExport SEXP _inlassle_test_Problem_priors(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP parallelSEXP, SEXP tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
-    Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Problem_priors(N, Y, X, D, parallel, tol));
+    rcpp_result_gen = Rcpp::wrap(test_Problem_optimize(N, Y, X, Z, D, f, parallel, tol));
     return rcpp_result_gen;
 END_RCPP
 }
 // test_ResistanceOptim_likelihood
-Rcpp::List test_ResistanceOptim_likelihood(const arma::vec& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A);
-RcppExport SEXP _inlassle_test_ResistanceOptim_likelihood(SEXP parsSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP TSEXP, SEXP ASEXP) {
+Rcpp::List test_ResistanceOptim_likelihood(const arma::vec& pars, const arma::uvec& variable, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::mat& Z, const arma::cube& D, const Eigen::MatrixXd& S, const std::vector<unsigned>& T, const Eigen::MatrixXi& A);
+RcppExport SEXP _inlassle_test_ResistanceOptim_likelihood(SEXP parsSEXP, SEXP variableSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP SSEXP, SEXP TSEXP, SEXP ASEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type variable(variableSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type S(SSEXP);
     Rcpp::traits::input_parameter< const std::vector<unsigned>& >::type T(TSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXi& >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_likelihood(pars, N, Y, X, D, Z, T, A));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_ResistanceOptim_fixed_optimize
-Rcpp::List test_ResistanceOptim_fixed_optimize(const arma::vec& pars, const arma::vec& fix, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose);
-RcppExport SEXP _inlassle_test_ResistanceOptim_fixed_optimize(SEXP parsSEXP, SEXP fixSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP TSEXP, SEXP ASEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type pars(parsSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type fix(fixSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< const std::vector<unsigned>& >::type T(TSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXi& >::type A(ASEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_fixed_optimize(pars, fix, N, Y, X, D, Z, T, A, verbose));
+    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_likelihood(pars, variable, N, Y, X, Z, D, S, T, A));
     return rcpp_result_gen;
 END_RCPP
 }
 // test_ResistanceOptim_optimize
-Rcpp::List test_ResistanceOptim_optimize(const arma::vec& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose);
-RcppExport SEXP _inlassle_test_ResistanceOptim_optimize(SEXP parsSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP TSEXP, SEXP ASEXP, SEXP verboseSEXP) {
+Rcpp::List test_ResistanceOptim_optimize(const arma::vec& pars, const arma::uvec& variable, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::mat& Z, const arma::cube& D, const Eigen::MatrixXd& S, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose);
+RcppExport SEXP _inlassle_test_ResistanceOptim_optimize(SEXP parsSEXP, SEXP variableSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP SSEXP, SEXP TSEXP, SEXP ASEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type variable(variableSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type S(SSEXP);
     Rcpp::traits::input_parameter< const std::vector<unsigned>& >::type T(TSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXi& >::type A(ASEXP);
     Rcpp::traits::input_parameter< const arma::uword >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_optimize(pars, N, Y, X, D, Z, T, A, verbose));
+    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_optimize(pars, variable, N, Y, X, Z, D, S, T, A, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // test_ResistanceOptim_optimize_global
-Rcpp::List test_ResistanceOptim_optimize_global(const arma::vec& lb, const arma::vec& ub, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose);
-RcppExport SEXP _inlassle_test_ResistanceOptim_optimize_global(SEXP lbSEXP, SEXP ubSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP TSEXP, SEXP ASEXP, SEXP verboseSEXP) {
+Rcpp::List test_ResistanceOptim_optimize_global(const arma::vec& lb, const arma::vec& ub, const arma::uvec& variable, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::mat& Z, const arma::cube& D, const Eigen::MatrixXd& S, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose);
+RcppExport SEXP _inlassle_test_ResistanceOptim_optimize_global(SEXP lbSEXP, SEXP ubSEXP, SEXP variableSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP SSEXP, SEXP TSEXP, SEXP ASEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type lb(lbSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type ub(ubSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type variable(variableSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type S(SSEXP);
     Rcpp::traits::input_parameter< const std::vector<unsigned>& >::type T(TSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXi& >::type A(ASEXP);
     Rcpp::traits::input_parameter< const arma::uword >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_optimize_global(lb, ub, N, Y, X, D, Z, T, A, verbose));
+    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_optimize_global(lb, ub, variable, N, Y, X, Z, D, S, T, A, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // test_ResistanceOptim_grid
-Rcpp::List test_ResistanceOptim_grid(const arma::mat& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A);
-RcppExport SEXP _inlassle_test_ResistanceOptim_grid(SEXP parsSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP TSEXP, SEXP ASEXP) {
+Rcpp::List test_ResistanceOptim_grid(const arma::mat& pars, const arma::uvec& variable, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::mat& Z, const arma::cube& D, const Eigen::MatrixXd& S, const std::vector<unsigned>& T, const Eigen::MatrixXi& A);
+RcppExport SEXP _inlassle_test_ResistanceOptim_grid(SEXP parsSEXP, SEXP variableSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP SSEXP, SEXP TSEXP, SEXP ASEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type variable(variableSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type S(SSEXP);
     Rcpp::traits::input_parameter< const std::vector<unsigned>& >::type T(TSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXi& >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_grid(pars, N, Y, X, D, Z, T, A));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_ResistanceOptim_priors_likelihood
-Rcpp::List test_ResistanceOptim_priors_likelihood(const arma::vec& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A);
-RcppExport SEXP _inlassle_test_ResistanceOptim_priors_likelihood(SEXP parsSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP TSEXP, SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type pars(parsSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< const std::vector<unsigned>& >::type T(TSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXi& >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_priors_likelihood(pars, N, Y, X, D, Z, T, A));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_ResistanceOptim_priors_optimize
-Rcpp::List test_ResistanceOptim_priors_optimize(const arma::vec& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose);
-RcppExport SEXP _inlassle_test_ResistanceOptim_priors_optimize(SEXP parsSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP TSEXP, SEXP ASEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type pars(parsSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< const std::vector<unsigned>& >::type T(TSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXi& >::type A(ASEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_priors_optimize(pars, N, Y, X, D, Z, T, A, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_ResistanceOptim_priors_optimize_global
-Rcpp::List test_ResistanceOptim_priors_optimize_global(const arma::vec& lb, const arma::vec& ub, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose);
-RcppExport SEXP _inlassle_test_ResistanceOptim_priors_optimize_global(SEXP lbSEXP, SEXP ubSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP TSEXP, SEXP ASEXP, SEXP verboseSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type lb(lbSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type ub(ubSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< const std::vector<unsigned>& >::type T(TSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXi& >::type A(ASEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_priors_optimize_global(lb, ub, N, Y, X, D, Z, T, A, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_ResistanceOptim_priors_grid
-Rcpp::List test_ResistanceOptim_priors_grid(const arma::mat& pars, const arma::mat& N, const arma::mat& Y, const arma::mat& X, const arma::cube& D, const Eigen::MatrixXd& Z, const std::vector<unsigned>& T, const Eigen::MatrixXi& A);
-RcppExport SEXP _inlassle_test_ResistanceOptim_priors_grid(SEXP parsSEXP, SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP DSEXP, SEXP ZSEXP, SEXP TSEXP, SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type pars(parsSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type D(DSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< const std::vector<unsigned>& >::type T(TSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXi& >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_priors_grid(pars, N, Y, X, D, Z, T, A));
+    rcpp_result_gen = Rcpp::wrap(test_ResistanceOptim_grid(pars, variable, N, Y, X, Z, D, S, T, A));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -758,7 +605,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_inlassle_test_Gaussian_C", (DL_FUNC) &_inlassle_test_Gaussian_C, 4},
     {"_inlassle_test_Gaussian_dC_dt", (DL_FUNC) &_inlassle_test_Gaussian_dC_dt, 4},
     {"_inlassle_test_Gaussian_dC_dD", (DL_FUNC) &_inlassle_test_Gaussian_dC_dD, 4},
-    {"_inlassle_test_Likelihood", (DL_FUNC) &_inlassle_test_Likelihood, 9},
+    {"_inlassle_test_Likelihood", (DL_FUNC) &_inlassle_test_Likelihood, 10},
     {"_inlassle_test_Matern_C", (DL_FUNC) &_inlassle_test_Matern_C, 4},
     {"_inlassle_test_Matern_dC_dt", (DL_FUNC) &_inlassle_test_Matern_dC_dt, 4},
     {"_inlassle_test_Matern_dC_dD", (DL_FUNC) &_inlassle_test_Matern_dC_dD, 4},
@@ -769,21 +616,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_inlassle_test_LKJ", (DL_FUNC) &_inlassle_test_LKJ, 3},
     {"_inlassle_test_LKJ_jac", (DL_FUNC) &_inlassle_test_LKJ_jac, 3},
     {"_inlassle_test_LogBetaPrime", (DL_FUNC) &_inlassle_test_LogBetaPrime, 3},
-    {"_inlassle_test_Problem_likelihood", (DL_FUNC) &_inlassle_test_Problem_likelihood, 9},
-    {"_inlassle_test_Problem_plikelihood", (DL_FUNC) &_inlassle_test_Problem_plikelihood, 9},
-    {"_inlassle_test_Problem_optimize", (DL_FUNC) &_inlassle_test_Problem_optimize, 6},
-    {"_inlassle_test_Problem_optimize_fixed", (DL_FUNC) &_inlassle_test_Problem_optimize_fixed, 9},
-    {"_inlassle_test_Problem_penalize", (DL_FUNC) &_inlassle_test_Problem_penalize, 6},
-    {"_inlassle_test_Problem_priors", (DL_FUNC) &_inlassle_test_Problem_priors, 6},
-    {"_inlassle_test_ResistanceOptim_likelihood", (DL_FUNC) &_inlassle_test_ResistanceOptim_likelihood, 8},
-    {"_inlassle_test_ResistanceOptim_fixed_optimize", (DL_FUNC) &_inlassle_test_ResistanceOptim_fixed_optimize, 10},
-    {"_inlassle_test_ResistanceOptim_optimize", (DL_FUNC) &_inlassle_test_ResistanceOptim_optimize, 9},
-    {"_inlassle_test_ResistanceOptim_optimize_global", (DL_FUNC) &_inlassle_test_ResistanceOptim_optimize_global, 10},
-    {"_inlassle_test_ResistanceOptim_grid", (DL_FUNC) &_inlassle_test_ResistanceOptim_grid, 8},
-    {"_inlassle_test_ResistanceOptim_priors_likelihood", (DL_FUNC) &_inlassle_test_ResistanceOptim_priors_likelihood, 8},
-    {"_inlassle_test_ResistanceOptim_priors_optimize", (DL_FUNC) &_inlassle_test_ResistanceOptim_priors_optimize, 9},
-    {"_inlassle_test_ResistanceOptim_priors_optimize_global", (DL_FUNC) &_inlassle_test_ResistanceOptim_priors_optimize_global, 10},
-    {"_inlassle_test_ResistanceOptim_priors_grid", (DL_FUNC) &_inlassle_test_ResistanceOptim_priors_grid, 8},
+    {"_inlassle_test_Problem_likelihood", (DL_FUNC) &_inlassle_test_Problem_likelihood, 10},
+    {"_inlassle_test_Problem_optimize", (DL_FUNC) &_inlassle_test_Problem_optimize, 8},
+    {"_inlassle_test_ResistanceOptim_likelihood", (DL_FUNC) &_inlassle_test_ResistanceOptim_likelihood, 10},
+    {"_inlassle_test_ResistanceOptim_optimize", (DL_FUNC) &_inlassle_test_ResistanceOptim_optimize, 11},
+    {"_inlassle_test_ResistanceOptim_optimize_global", (DL_FUNC) &_inlassle_test_ResistanceOptim_optimize_global, 12},
+    {"_inlassle_test_ResistanceOptim_grid", (DL_FUNC) &_inlassle_test_ResistanceOptim_grid, 10},
     {"_inlassle_testlink", (DL_FUNC) &_inlassle_testlink, 0},
     {"_inlassle_testrd", (DL_FUNC) &_inlassle_testrd, 6},
     {"_inlassle_inlassle_test_HessianBlock_inc1", (DL_FUNC) &_inlassle_inlassle_test_HessianBlock_inc1, 1},
