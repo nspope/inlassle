@@ -128,7 +128,7 @@ mat Likelihood<Spatial, Prior>::fisher (const Parameters<Prior>& par) const
   
   mat dlp_dt = cov.dC_dt.t() * dlp_dC,
       dlp_dv = par.dC_dv.t() * dlp_dC,
-      dlp_dS = dlp_ds.each_row() % -s, // see ::gradient above
+      dlp_dS = dlp_ds.each_col() % -s, // see ::gradient above
       dlp_db = data.X.t() * dlp_dmu;
 
   dlp_dS = data.Z.t() * dlp_dS; // see ::gradient above
