@@ -150,7 +150,16 @@ double Field::newton_raphson (void)
   grad.fill(arma::datum::inf);
 
   /* initial values */
-  mode = mu; // ensures that missing values stay fixed at mode
+  // this could be improved? By somehow incorporating the mean/precision matrix.
+  // In general this will work well with more observations.
+  for (uword i=0; i<dim; ++i)
+  {
+    if (n[i] > 0)
+      mode[i] = log(double(y[i]) + 0.5) - log(double(n[i] - y[i]) + 1.);
+    else
+      mode[i] = mu[i]; // ensures that missing values stay fixed at mode
+  }
+  mode.print("starting mode");//DEBUG
 
   // start dlib
   auto ll = [&](const dlib_mat& inp) 
@@ -164,11 +173,14 @@ double Field::newton_raphson (void)
         a = s[i]*m;      b = s[i]*(1-m);
         lp += lgamma(n[i]+1) + lgamma(y[i]+a) + lgamma(z+b) + lgamma(a+b) -
               lgamma(y[i]+1) - lgamma(z+1) - lgamma(n[i]+a+b) - lgamma(a) - lgamma(b);
-        //Rcpp::Rcout << lp << " " << mode[i] << " " << s[i] << " " << y[i] << " " << n[i] << std::endl; //DEBUG
+        Rcpp::Rcout << "Obj" << std::endl << lp << " " << mode[i] << " " << s[i] << " " << y[i] << " " << n[i] << std::endl; //DEBUG
       }
     return 0.5 * arma::dot(mode-mu, Q * (mode-mu)) - lp;
   };
 
+  // key point: the gradient and Hessian vanish when m or (1-m) = 0.
+  // But: digamma fnc will throw errors. So to make safe we should
+  // escape before then, setting dl_dx to 0.
   auto gr = [&](const dlib_mat& inp) 
   { 
     double z, m, a, b;
@@ -183,6 +195,9 @@ double Field::newton_raphson (void)
         dl_dx[i] = m * (1. - m) * s[i] * (polygamma(0,y[i]+a) - polygamma(0,a) - polygamma(0,z+b) + polygamma(0,b));      
       }
     grad = Q * (mode - mu) - dl_dx;
+
+    grad.t().print("Grad");//DEBUG
+
     return arma_to_dlib(grad);
   }; 
 
@@ -200,8 +215,7 @@ double Field::newton_raphson (void)
         d2l_dx2[i] = dl_dx[i] * (1. - 2*m) + 
           pow(m * (1. - m), 2) * s[i] * s[i] * (polygamma(1,y[i]+a) - polygamma(1,a) + polygamma(1,z+b) - polygamma(1,b)); 
       }
-    m = std::max(0., d2l_dx2.max()); // choose so as to make PSD
-    hess = Q - arma::diagmat(d2l_dx2) + m * arma::eye(arma::size(Q));
+    hess = Q - arma::diagmat(d2l_dx2);
     return arma_to_dlib(hess);
   }; 
 
@@ -239,10 +253,6 @@ double Field::newton_raphson (void)
 //      mode -= arma::solve(hess, grad);
 //    score (); 
 //    hess = Q - arma::diagmat(d2l_dx2); // orig
-////    hess = psd_inv(Q - arma::diagmat(d2l_dx2), 1.); // try to correct?
-////    min_lambda = std::max(0., d2l_dx2.max());
-////    if (min_lambda > 0.) 
-////      hess += arma::eye(arma::size(Q)) * min_lambda;
 //    grad = Q * (mode - mu) - dl_dx;
 //  }
 //

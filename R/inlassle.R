@@ -34,12 +34,40 @@ test_ResistanceSolver <- function(dim=5, seed=1, parallel=FALSE)
   list(Rd, Rd2)
 }
 
-test_ResistanceSolverNL <- function(dim=5, seed=1, parallel=FALSE)
+get_ResistanceNL <- function(dim=5, pts=3, seed=1, do_grid=FALSE, parallel=FALSE)
 {
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
                        xmn=0, xmx=1, ymn=0, ymx=1)
-  targ <- c(0, floor(dim*dim/2)-1, dim*dim-2)
+  if(do_grid)
+    coords <- as.matrix(expand.grid(seq(0.2,0.8,length.out=pts),seq(0.2,0.8,length.out=pts)))
+  else
+    coords <- cbind(runif(pts,0.2,0.8),runif(pts,0.2,0.8))
+  targ <- unique(cellFromXY(rr, coords)-1)
+  adj <- raster::adjacent(rr, 1:(dim*dim))-1
+  adj <- t(apply(adj,1,sort))
+  adj <- adj[!duplicated(adj),]
+  spd <- cbind(rnorm(dim*dim), rnorm(dim*dim))
+  pars <- c(0,0)
+  cond <- 1/plogis(spd%*%pars)
+  L <- matrix(0,dim*dim,dim*dim)
+  for(i in 1:nrow(adj)) L[adj[i,1]+1,adj[i,2]+1] <- -0.5*cond[adj[i,1]+1] - 0.5*cond[adj[i,2]+1]
+  L <- L + t(L)
+  diag(L) <- -rowSums(L)
+  Linv <- MASS::ginv(L)
+  E <- diag(dim*dim)[,targ+1]
+  Lp <- t(E)%*%Linv%*%E
+  Rd <- t(-2*Lp + diag(Lp)) + diag(Lp)
+  list(Rd=Rd, E=E, Lp=Lp, Linv=Linv, r=rr, coords=coords)
+}
+
+test_ResistanceSolverNL <- function(dim=5, pts=3, seed=1, parallel=FALSE)
+{
+  set.seed(seed)
+  rr <- raster::raster(nrows=dim, ncols=dim, 
+                       xmn=0, xmx=1, ymn=0, ymx=1)
+#  targ <- c(0, floor(dim*dim/2)-1, dim*dim-2)
+  targ <- sample(0:(dim*dim-2), pts)
   adj <- raster::adjacent(rr, 1:(dim*dim))-1
   adj <- t(apply(adj,1,sort))
   adj <- adj[!duplicated(adj),]
