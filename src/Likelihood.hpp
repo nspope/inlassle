@@ -10,6 +10,9 @@ template <class Prior> struct Parameters;
 template <class Spatial, class Prior>
 struct Likelihood : public RcppParallel::Worker
 {
+  // WHAT THIS CLASS REPRESENTS
+  //   TODO
+
   bool singular = true;
   double loglikelihood = arma::datum::inf;
 
@@ -19,13 +22,13 @@ struct Likelihood : public RcppParallel::Worker
   const Spatial cov;
 
   /* parameters */
-  const vec s, mu;
+  const vec sigma, mu;
   const mat Q, dC_dv;
 
   /* output */
   vec loglik, &ll;
   mat dl_dC, &dlp_dC,
-      dl_ds, &dlp_ds,
+      dl_dsigma, &dlp_dsigma,
       dl_dmu, &dlp_dmu;
 
   public:

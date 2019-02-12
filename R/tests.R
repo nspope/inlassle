@@ -4,7 +4,7 @@
 .symm <- function(X)
   (X + t(X))/2
 
-.test_field <- function(seed = 1, n = 10, p = 10, miss = 0)
+.test_Field <- function(seed = 1, n = 10, p = 10, miss = 0)
 {
   set.seed(seed)
   Q <- rWishart(1, p, diag(p))[,,1]
@@ -17,9 +17,10 @@
   N[miss] <- Y[miss] <- 0
   Qm <- solve(C[!miss,!miss,drop=FALSE])
 
-  dbetabinom <- function(x, n, y, s) lchoose(n, y) + lbeta(plogis(x)*s + y, (1-plogis(x))*s + n - y) - lbeta(plogis(x)*s, (1-plogis(x))*s)
-  obj <- function(x) 0.5*t(x-mu[!miss])%*%Qm%*%(x-mu[!miss]) - sum(dbetabinom(x, N[!miss], Y[!miss], S[!miss]))
-  obj_lp <- function(mu, S, C) inlassle_test_Field_lapapp (Y, N, mu, S, solve(C))
+  obj <- function(x) 
+    0.5*t(x-mu[!miss])%*%Qm%*%(x-mu[!miss]) - 
+      sum(-lchoose(N[!miss], Y[!miss]) + dbinom(Y[!miss], N[!miss], plogis(x), log=TRUE))
+  obj_lp <- function(mu, C) inlassle_test_Field (Y, N, mu, solve(C))$lapapp
 
   fit <- optim(rep(0,sum(!miss)), obj, method="L-BFGS-B")
   hess <- numDeriv::hessian (obj, fit$par)
@@ -30,21 +31,75 @@
   gs[["loglik"]] <- fit$value
   gs[["logdet"]] <- determinant(Qm)$modulus
   gs[["loghes"]] <- determinant(hess)$modulus
-  gs[["dlp_dmu"]] <- numDeriv::grad (function(x) obj_lp(x, S, C), mu)
-  gs[["dlp_ds"]] <- numDeriv::grad (function(x) obj_lp(mu, x, C), S)
-  gs[["dlp_dC"]] <- .symm(matrix(numDeriv::grad (function(x) obj_lp(mu, S, x), solve(Q)),p,p))
+  gs[["dlp_dmu"]] <- numDeriv::grad (function(x) obj_lp(x, C), mu)
+  gs[["dlp_dC"]] <- .symm(matrix(numDeriv::grad (function(x) obj_lp(mu, x), solve(Q)),p,p))
 
+  out <- inlassle_test_Field(Y, N, mu, Q)
   cs <- list()
-  cs[["Q"]] <- inlassle_test_Field_Q (Y, N, mu, S, Q)[!miss,!miss]
-  cs[["mode"]] <- inlassle_test_Field_mode (Y, N, mu, S, Q)[!miss]
-  cs[["loglik"]] <- inlassle_test_Field_loglik (Y, N, mu, S, Q)
-  cs[["logdet"]] <- inlassle_test_Field_logdet (Y, N, mu, S, Q)
-  cs[["loghes"]] <- inlassle_test_Field_loghes (Y, N, mu, S, Q)
-  cs[["dlp_dmu"]] <- inlassle_test_Field_dlp_dmu (Y, N, mu, S, Q)
-  cs[["dlp_ds"]] <- inlassle_test_Field_dlp_ds (Y, N, mu, S, Q)
-  cs[["dlp_dC"]] <- inlassle_test_Field_dlp_dC (Y, N, mu, S, Q)
+  cs[["Q"]] <- out$Q[!miss,!miss]
+  cs[["mode"]] <- out$mode[!miss]
+  cs[["loglik"]] <- out$loglik
+  cs[["logdet"]] <- out$logdet
+  cs[["loghes"]] <- out$loghes
+  cs[["dlp_dmu"]] <- out$dlp_dmu
+  cs[["dlp_dC"]] <- out$dlp_dC
 
   tst <- sapply(1:length(cs), function(i) .near(gs[[i]], cs[[i]]))
+  tst 
+}
+
+.test_Likelihood <- function(seed = 1, n = 10, p = 10, l = 100, miss = 0)
+{
+  set.seed(seed)
+  Y <- matrix(rbinom(p*l, prob=rbeta(p*l,1,1), size=n), p, l)
+  N <- matrix(n, p, l)
+  X <- cbind(rep(1,p),rnorm(p))
+  Z <- X
+  D <- array(as.matrix(dist(cbind(runif(p),runif(p)))), c(p,p,1))
+  t <- c(0.7, 0.35)
+  v <- c(0.3, -0.4, 0.2)
+  s <- rnorm(2)
+  b <- c(-0.2, 0.2)
+  miss <- sample(c(TRUE,FALSE), prob = c(miss, 1-miss), p * l, replace=TRUE)
+  Y[miss] <- N[miss] <- 0
+
+  obj <- function(t, v, s, b, D)
+  {
+    t <- exp(t)
+    C <- inlassle_test_Matern_C (D, 2, 0.1, t) 
+    L <- matrix(0, length(b), length(b))
+    L[lower.tri(L, diag=TRUE)] <- v
+    P <- diag(exp(diag(L))) #log LDL
+    diag(L) <- 1
+    L <- L %*% P
+    S <- c(exp(2 * Z %*% s))
+    Q <- solve(C + X %*% L %*% t(L) %*% t(X) + diag(S))
+    mu <- X %*% b
+    ll <- sum(sapply(1:ncol(N), function(l)
+           inlassle_test_Field (Y[,l], N[,l], mu, Q)$lapapp))
+    list(ll=ll/ncol(N), Q=Q)
+  }
+
+  obj2 <- function(t, v, s, b, D)
+    inlassle_test_Likelihood (N, Y, X, Z, D, t, v, s, b, TRUE)[["loglik"]]
+
+  obj3 <- function(i)
+    inlassle_test_Likelihood (N[,i,drop=F], Y[,i,drop=F], X, Z, D, t, v, s, b, TRUE)[["gradient"]]
+  grad_by_locus <- sapply(1:ncol(N), obj3)
+
+  gs <- list()
+  gs[["Q"]] <- obj (t, v, s, b, D)$Q
+  gs[["loglik"]] <- obj (t, v, s, b, D)$ll
+  gs[["gradient"]] <- numDeriv::grad(function(x) obj2(x[1:length(t)], 
+                                                      x[(length(t)+1):(length(t)+length(v))], 
+                                                      x[(length(t)+length(v)+1):(length(t)+length(v)+length(s))], 
+                                                      x[(length(t)+length(v)+length(s)+1):length(x)], D), c(t,v,s,b))
+  gs[["gradient_distance"]] <- array(.symm(matrix(numDeriv::grad(function(D) obj2(t, v, s, b, D), D),p,p)), dim=c(p, p, 1))
+  gs[["hessian"]] <- MASS::ginv(grad_by_locus %*% t(grad_by_locus) / ncol(N))
+
+  cs <- inlassle_test_Likelihood (N, Y, X, Z, D, t, v, s, b, TRUE)
+
+  tst <- sapply(1:length(gs), function(i) .near(gs[[i]], cs[[i]], tol=1e-5/l))
   tst 
 }
 
@@ -102,60 +157,6 @@
   tst 
 }
 
-.test_likelihood <- function(seed = 1, n = 10, p = 10, l = 100, miss = 0)
-{
-  set.seed(seed)
-  Y <- matrix(rbinom(p*l, prob=rbeta(p*l,1,1), size=n), p, l)
-  N <- matrix(n, p, l)
-  X <- cbind(rep(1,p),rnorm(p))
-  Z <- X
-  D <- array(as.matrix(dist(cbind(runif(p),runif(p)))), c(p,p,1))
-  t <- c(0.7, 0.35)
-  v <- c(0.3, -0.4, 0.2)
-  s <- rnorm(2)
-  b <- c(-0.2, 0.2)
-  miss <- sample(c(TRUE,FALSE), prob = c(miss, 1-miss), p * l, replace=TRUE)
-  Y[miss] <- N[miss] <- 0
-
-  obj <- function(t, v, s, b, D)
-  {
-    t <- exp(t)
-    C <- inlassle_test_Matern_C (D, 2, 0.1, t) 
-    L <- matrix(0, length(b), length(b))
-    L[lower.tri(L, diag=TRUE)] <- v
-    P <- diag(exp(diag(L))) #log LDL
-    diag(L) <- 1
-    L <- L %*% P
-    Q <- solve(C + X %*% L %*% t(L) %*% t(X))
-    mu <- X %*% b
-    S <- exp(-Z %*% s) #log
-    ll <- sum(sapply(1:ncol(N), function(l)
-           inlassle_test_Field_lapapp (Y[,l], N[,l], mu, S, Q)))
-    list(ll=ll/ncol(N), Q=Q)
-  }
-
-  obj2 <- function(t, v, s, b, D)
-    inlassle_test_Likelihood (N, Y, X, Z, D, t, v, s, b, TRUE)[["loglik"]]
-
-  obj3 <- function(i)
-    inlassle_test_Likelihood (N[,i,drop=F], Y[,i,drop=F], X, Z, D, t, v, s, b, TRUE)[["gradient"]]
-  grad_by_locus <- sapply(1:ncol(N), obj3)
-
-  gs <- list()
-  gs[["Q"]] <- obj (t, v, s, b, D)$Q
-  gs[["loglik"]] <- obj (t, v, s, b, D)$ll
-  gs[["gradient"]] <- numDeriv::grad(function(x) obj2(x[1:length(t)], 
-                                                      x[(length(t)+1):(length(t)+length(v))], 
-                                                      x[(length(t)+length(v)+1):(length(t)+length(v)+length(s))], 
-                                                      x[(length(t)+length(v)+length(s)+1):length(x)], D), c(t,v,s,b))
-  gs[["gradient_distance"]] <- array(.symm(matrix(numDeriv::grad(function(D) obj2(t, v, s, b, D), D),p,p)), dim=c(p, p, 1))
-  gs[["hessian"]] <- MASS::ginv(grad_by_locus %*% t(grad_by_locus) / ncol(N))
-
-  cs <- inlassle_test_Likelihood (N, Y, X, Z, D, t, v, s, b, TRUE)
-
-  tst <- sapply(1:length(gs), function(i) .near(gs[[i]], cs[[i]], tol=1e-5/l))
-  tst 
-}
 
 .test_problem <- function(seed = 1, n = 10, p = 10, l = 100, miss = 0, parallel = FALSE, newton = TRUE, tol = 1e-5)
 {

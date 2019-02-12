@@ -38,21 +38,21 @@ struct Inlassle
                  t_lambda = 0.1,
                  v_eta = 2.,
                  v_gamma = 1.,
-                 s_mu = 0.5,
-                 s_delta = 1,
+                 s_mu = 0.,
+                 s_lambda = 0.1,
                  b_mu = 0.,
                  b_lambda = 0.1;
 
   public:
     Gaussian     t;
     LKJ          v;
-    LogBetaPrime s; // FIXME this is only sensical if Z is a matrix of dummy variables. Also, it's now incorrect as we now parameterize as dispersions (e.g. inverse of how it was before).
+    Gaussian     s; 
     Gaussian     b;
 
   Inlassle (const vec& pars, const vec& t, const vec& v, const vec& s, const vec& b) 
     : t (t, t_mu*arma::ones<vec>(t.n_elem), t_lambda*arma::eye<mat>(t.n_elem, t.n_elem))
     , v (v, v_eta, v_gamma*arma::ones<vec>(b.n_elem))
-    , s (s, s_mu*arma::ones<vec>(s.n_elem), s_delta*arma::ones<vec>(s.n_elem))
+    , s (s, s_mu*arma::ones<vec>(s.n_elem), s_lambda*arma::eye<mat>(s.n_elem, s.n_elem))
     , b (b, b_mu*arma::ones<vec>(b.n_elem), b_lambda*arma::eye<mat>(b.n_elem, b.n_elem)) 
   {}
 };

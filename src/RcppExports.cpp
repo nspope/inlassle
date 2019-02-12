@@ -7,138 +7,17 @@
 
 using namespace Rcpp;
 
-// test_Field_mode
-arma::vec test_Field_mode(arma::vec y, arma::vec n, arma::vec mu, arma::vec s, arma::mat Q);
-RcppExport SEXP _inlassle_test_Field_mode(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP sSEXP, SEXP QSEXP) {
+// test_Field
+Rcpp::List test_Field(arma::vec y, arma::vec n, arma::vec mu, arma::mat Q);
+RcppExport SEXP _inlassle_test_Field(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP QSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Field_mode(y, n, mu, s, Q));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Field_loglik
-double test_Field_loglik(arma::vec y, arma::vec n, arma::vec mu, arma::vec s, arma::mat Q);
-RcppExport SEXP _inlassle_test_Field_loglik(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP sSEXP, SEXP QSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Field_loglik(y, n, mu, s, Q));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Field_logdet
-double test_Field_logdet(arma::vec y, arma::vec n, arma::vec mu, arma::vec s, arma::mat Q);
-RcppExport SEXP _inlassle_test_Field_logdet(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP sSEXP, SEXP QSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Field_logdet(y, n, mu, s, Q));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Field_loghes
-double test_Field_loghes(arma::vec y, arma::vec n, arma::vec mu, arma::vec s, arma::mat Q);
-RcppExport SEXP _inlassle_test_Field_loghes(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP sSEXP, SEXP QSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Field_loghes(y, n, mu, s, Q));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Field_lapapp
-double test_Field_lapapp(arma::vec y, arma::vec n, arma::vec mu, arma::vec s, arma::mat Q);
-RcppExport SEXP _inlassle_test_Field_lapapp(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP sSEXP, SEXP QSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Field_lapapp(y, n, mu, s, Q));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Field_dlp_dmu
-arma::vec test_Field_dlp_dmu(arma::vec y, arma::vec n, arma::vec mu, arma::vec s, arma::mat Q);
-RcppExport SEXP _inlassle_test_Field_dlp_dmu(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP sSEXP, SEXP QSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Field_dlp_dmu(y, n, mu, s, Q));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Field_dlp_ds
-arma::vec test_Field_dlp_ds(arma::vec y, arma::vec n, arma::vec mu, arma::vec s, arma::mat Q);
-RcppExport SEXP _inlassle_test_Field_dlp_ds(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP sSEXP, SEXP QSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Field_dlp_ds(y, n, mu, s, Q));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Field_dlp_dC
-arma::mat test_Field_dlp_dC(arma::vec y, arma::vec n, arma::vec mu, arma::vec s, arma::mat Q);
-RcppExport SEXP _inlassle_test_Field_dlp_dC(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP sSEXP, SEXP QSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Field_dlp_dC(y, n, mu, s, Q));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Field_Q
-arma::mat test_Field_Q(arma::vec y, arma::vec n, arma::vec mu, arma::vec s, arma::mat Q);
-RcppExport SEXP _inlassle_test_Field_Q(SEXP ySEXP, SEXP nSEXP, SEXP muSEXP, SEXP sSEXP, SEXP QSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Q(QSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Field_Q(y, n, mu, s, Q));
+    rcpp_result_gen = Rcpp::wrap(test_Field(y, n, mu, Q));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -593,15 +472,7 @@ END_RCPP
 RcppExport SEXP _rcpp_module_boot_inlassle();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_inlassle_test_Field_mode", (DL_FUNC) &_inlassle_test_Field_mode, 5},
-    {"_inlassle_test_Field_loglik", (DL_FUNC) &_inlassle_test_Field_loglik, 5},
-    {"_inlassle_test_Field_logdet", (DL_FUNC) &_inlassle_test_Field_logdet, 5},
-    {"_inlassle_test_Field_loghes", (DL_FUNC) &_inlassle_test_Field_loghes, 5},
-    {"_inlassle_test_Field_lapapp", (DL_FUNC) &_inlassle_test_Field_lapapp, 5},
-    {"_inlassle_test_Field_dlp_dmu", (DL_FUNC) &_inlassle_test_Field_dlp_dmu, 5},
-    {"_inlassle_test_Field_dlp_ds", (DL_FUNC) &_inlassle_test_Field_dlp_ds, 5},
-    {"_inlassle_test_Field_dlp_dC", (DL_FUNC) &_inlassle_test_Field_dlp_dC, 5},
-    {"_inlassle_test_Field_Q", (DL_FUNC) &_inlassle_test_Field_Q, 5},
+    {"_inlassle_test_Field", (DL_FUNC) &_inlassle_test_Field, 4},
     {"_inlassle_test_Gaussian_C", (DL_FUNC) &_inlassle_test_Gaussian_C, 4},
     {"_inlassle_test_Gaussian_dC_dt", (DL_FUNC) &_inlassle_test_Gaussian_dC_dt, 4},
     {"_inlassle_test_Gaussian_dC_dD", (DL_FUNC) &_inlassle_test_Gaussian_dC_dD, 4},
