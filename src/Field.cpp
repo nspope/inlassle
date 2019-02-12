@@ -79,7 +79,7 @@ void Field::score (void)
     }
 }
 
-void Field::linesearch (const vec& descent)
+void Field::linesearch (vec&& descent)
 {
   /* a gradient-only variant of line search */
   const unsigned maxit = 100;//get rid after debugging
@@ -113,7 +113,7 @@ double Field::newton_raphson (void)
   {
     converge = arma::all(arma::abs(grad) < tol);
     if (converge)
-      break
+      break;
     linesearch(-arma::solve(hess, grad)); //updates mode/freq/grad/score
     hess = Q - arma::diagmat(d2l_dx2); 
   }

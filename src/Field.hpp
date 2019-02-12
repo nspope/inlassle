@@ -43,7 +43,7 @@ struct Field
     void guess_mode (void);
     double dbinom (void) const;
     void score (void);
-    void linesearch (const vec&);
+    void linesearch (vec&&);
     double newton_raphson (void);
 };
 
