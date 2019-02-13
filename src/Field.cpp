@@ -86,7 +86,7 @@ void Field::linesearch (vec&& descent)
   const double c1 = 1e-4, c2 = 0.9;
   double alpha = 5., a = arma::dot(descent, grad), b = 0.;
   vec origin = mode;
-  if (a < 0.) // not a descent direction, U-turn
+  if (a > 0.) // not a descent direction, U-turn
     descent *= -1.;
   for (unsigned i=0; i<maxit; ++i)
   {
