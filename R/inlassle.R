@@ -7,6 +7,66 @@ Rcpp::loadModule("inlassle", TRUE)
 #Rcpp::loadModule("randomfield", TRUE)
 
 ### tests
+test_ResistanceCov <- function(dim=5, seed=1, parallel=FALSE)
+{#test covariance calculation
+  set.seed(seed)
+  rr <- raster::raster(nrows=dim, ncols=dim, 
+                       xmn=0, xmx=1, ymn=0, ymx=1)
+  targ <- c(0, floor(dim*dim/2)-1, dim*dim-2)
+  adj <- raster::adjacent(rr, 1:(dim*dim))-1
+  adj <- t(apply(adj,1,sort))
+  adj <- adj[!duplicated(adj),]
+  spd <- cbind(rnorm(dim*dim), rnorm(dim*dim))
+  pars <- c(1,1)
+  cond <- exp(spd%*%pars)
+  L <- matrix(0,dim*dim,dim*dim)
+  for(i in 1:nrow(adj)) L[adj[i,1]+1,adj[i,2]+1] <- -0.5*cond[adj[i,1]+1] - 0.5*cond[adj[i,2]+1]
+  L <- L + t(L)
+  diag(L) <- -rowSums(L)
+  Linv <- MASS::ginv(L)
+  E <- diag(dim*dim)[,targ+1]
+  Lp <- t(E)%*%Linv%*%E / dim^2
+  hi <- ResistanceSolver$new(spd, targ, adj, parallel)
+  Lp2 <- hi$resistance_covariance_log(c(1,1))
+  list(Lp, Lp2)
+}
+
+test_ResistanceCov2 <- function(dim=5, seed=1, parallel=FALSE)
+{
+  set.seed(seed)
+  rr <- raster::raster(nrows=dim, ncols=dim, 
+                       xmn=0, xmx=1, ymn=0, ymx=1)
+  targ <- c(0, floor(dim*dim/2)-1, dim*dim-2)
+  adj <- raster::adjacent(rr, 1:(dim*dim))-1
+  #adj <- cbind(pmin(adj[,1],adj[,2]), pmax(adj[,1],adj[,2]))
+  #adj <- adj[!duplicated(adj),]
+  spd <- cbind(rnorm(dim*dim), rnorm(dim*dim))
+  hi <- ResistanceSolver$new(spd, targ, adj, parallel)
+  pars <- c(1,1)
+  Rd2 <- hi$resistance_covariance_log(pars)
+  Rd2
+}
+
+test_ResistanceCov3 <- function(dim=5, seed=1, parallel=FALSE)
+{#gradient calculation
+  set.seed(seed)
+  rr <- raster::raster(nrows=dim, ncols=dim, 
+                       xmn=0, xmx=1, ymn=0, ymx=1)
+  targ <- c(0, floor(dim*dim/2)-1, dim*dim-2)
+  adj <- raster::adjacent(rr, 1:(dim*dim))-1
+#  adj <- cbind(pmin(adj[,1],adj[,2]), pmax(adj[,1],adj[,2]))
+#  adj <- adj[!duplicated(adj),]
+  spd <- cbind(rnorm(dim*dim), rnorm(dim*dim))
+  dif <- matrix(rnorm(3*3), 3, 3); dif = dif + t(dif); diag(dif) = 0;
+  hi <- ResistanceSolver$new(spd, targ, adj, parallel)
+  pars <- c(1,1)
+  Rd2 <- hi$resistance_covariance_log(pars)
+  dRd2 <- hi$rd_resistance_covariance_log(dif)
+  emp <- as.vector(dif) %*% numDeriv::jacobian(hi$resistance_covariance_log, pars)
+  list(Rd2, dRd2, emp)
+}
+
+#
 test_ResistanceSolver <- function(dim=5, seed=1, parallel=FALSE)
 {
   set.seed(seed)

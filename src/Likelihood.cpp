@@ -3,6 +3,7 @@
 #include "Problem.hpp"
 #include "Field.hpp"
 #include "Matern.hpp"
+#include "Weighted.hpp"
 #include "Priors.hpp"
 
 // ----------------------------------------------- implementation
@@ -153,6 +154,7 @@ mat Likelihood<Spatial, Prior>::fisher (const Parameters<Prior>& par) const
 
 // ----------------------------------------------- explicit instantiations
 
+template class Likelihood<Covariance::Weighted, Prior::MLE>;
 template class Likelihood<Covariance::Matern, Prior::MLE>;
 template class Likelihood<Covariance::Matern, Prior::Penalized>;
 template class Likelihood<Covariance::Matern, Prior::Inlassle>;
@@ -172,4 +174,19 @@ Rcpp::List test_Likelihood (arma::mat N, arma::mat Y, arma::mat X, arma::mat Z, 
            Rcpp::_["gradient"] = lik.gradient(parm),
            Rcpp::_["gradient_distance"] = lik.gradient_distance(parm),
            Rcpp::_["hessian"] = lik.fisher(parm));
+}
+
+// [[Rcpp::export("inlassle_test_Likelihood_cov")]]
+Rcpp::List test_Likelihood_cov (arma::mat N, arma::mat Y, arma::mat X, arma::mat Z, arma::cube D, arma::vec v, arma::vec s, arma::vec b, bool parallel) 
+{
+  Problem prob (N, Y, X, Z, D, 2, parallel);
+  vec t = arma::zeros<vec>(D.n_slices+1);
+  vec p = arma::join_vert(t, arma::join_vert(v, arma::join_vert(s, b)));
+  Parameters<Prior::MLE> parm (prob, p);
+  Likelihood<Covariance::Weighted, Prior::MLE> lik (prob, parm);
+  return Rcpp::List::create (
+           Rcpp::_["Q"] = lik.precision(prob, parm),
+           Rcpp::_["loglik"] = lik.loglikelihood,
+           Rcpp::_["gradient"] = lik.gradient(parm).tail(p.n_elem - D.n_slices - 1),
+           Rcpp::_["gradient_distance"] = lik.gradient_distance(parm));
 }

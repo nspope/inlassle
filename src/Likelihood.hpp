@@ -23,7 +23,7 @@ struct Likelihood : public RcppParallel::Worker
 
   /* parameters */
   const vec sigma, mu;
-  const mat Q, dC_dv;
+  const mat Q, dC_dv; //is dC_dv used for anything?? I think it has been move into struct Parameters
 
   /* output */
   vec loglik, &ll;

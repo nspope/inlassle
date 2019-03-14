@@ -1,6 +1,7 @@
 #include "ResistanceOptim.hpp"
 #include "Priors.hpp"
 #include "Matern.hpp"
+#include "Weighted.hpp"
 #include "Parameters.hpp"
 #include <dlib/optimization.h>
 #include <dlib/global_optimization.h>
@@ -73,13 +74,14 @@ dlib_mat eigen2dlib (const MatrixXd& x)
 
 //--------------------------------------- implementation
 
+//TODO need to refactor this stuff, possibly?
 ResistanceOptim::ResistanceOptim (const Problem& subproblem, const MatrixXd& spatial, const UiVector& targets, const MatrixXi& adjacency,
-                                  const double inner_tol, const uword maxiter, const uword verbose)
+                                  const double inner_tol, const double outer_tol, const uword maxiter, const uword verbose)
   : subproblem (subproblem)
   , resistance (spatial, targets, adjacency, subproblem.parallel)
   , start (arma::zeros<vec>(subproblem.npars))
-  , gradient (arma::zeros<vec>(resistance.npars))
   , inner_tol (inner_tol)
+  , outer_tol (outer_tol)
   , maxiter (maxiter)
   , verbose (verbose)
 {
@@ -87,51 +89,102 @@ ResistanceOptim::ResistanceOptim (const Problem& subproblem, const MatrixXd& spa
     Rcpp::stop ("ResistanceOptim: inconsistent dimensions");
 }
 
-//template <class Spatial, class Prior>
-//double ResistanceOptim::fixed_likelihood (const vec& par, const vec& fix)
-//{
-//  ++iter;
-//
-//  // calculate resistance distance
-//  subproblem.D.slice(0) = eigen2arma(resistance.resistance_distances<Link::ReciprocalLogit>(arma2eigen(par)));
-//
-//  // solve subproblem, e.g. find (possibly penalized) maximum likelihood estimate of spatial parameters
-//  Parameters<Prior> p(subproblem, fix);
-//  double result = subproblem.likelihood<Spatial, Prior>(p);
-//  gradient = eigen2arma(resistance.rd_resistance_distances<Link::ReciprocalLogit>(arma2eigen(subproblem.gradient_distance.slice(0))));
-//
-//  // verbose
-//  Rcpp::Rcout << iter << " " << double(subproblem.dim)*result << " " << par << std::endl;
-////  print (par, result);
-//
-//  return result;
-//}
+double ResistanceOptim::BFGS (vec& par, vec& grad, mat& hess, const uvec& variable, double& loglik)
+{
+  vec descent = -hess * grad,
+      grad_diff = -grad;
+  double alpha = linesearch(par, grad, descent, variable, loglik);
+  vec step = descent * alpha;
+  grad_diff += grad;
 
-//template <class Spatial, class Prior>
-//vec ResistanceOptim::fixed_optimize (const vec& start, const vec& fix, const double outer_tol) 
-//{
-//  if (start.n_elem != resistance.npars)
-//    Rcpp::stop("ResistanceOptim: inconsistent dimensions");
-//
-//  iter = 0;
-//
-//  auto loglik = [&] (const dlib_mat& par) { return fixed_likelihood<Spatial, Prior>(dlib2arma(par), fix); };
-//  auto grad   = [&] (const dlib_mat& par) { return arma2dlib(gradient); };
-//
-//  auto pars = arma2dlib (start);
-//
-//  auto result = dlib::find_min
-//    (dlib::bfgs_search_strategy (),
-//     dlib::objective_delta_stop_strategy (outer_tol/double(subproblem.dim), maxiter), // NOTE: rescaled by dimension
-//     loglik, grad, pars,
-//     0.); // minimum function value for dlib::find_min()
-//
-//  vec out = { result };
-//  return arma::join_cols(out, dlib2arma(pars)); 
-//}
+  double p = arma::dot(grad_diff, step);
+  if (p < 0.1)
+    hess = arma::eye<mat>(arma::size(hess));
+  else
+    hess = (arma::eye<mat>(arma::size(hess)) - step*grad_diff.t()/p) * hess * (arma::eye<mat>(arma::size(hess)) - grad_diff*step.t()/p) + step*step.t()/p;
+
+  double change = alpha > 0.0 ? sqrt(arma::dot(step, step)) : arma::datum::inf;
+
+  if (verbose)
+    Rcpp::Rcout << "Iter " << iter << ", loglik = " << loglik << ", ||x'-x|| = " << change << std::endl;
+
+  return change;
+}
+
+double ResistanceOptim::linesearch (vec& par, vec& grad, vec& descent, const uvec& variable, double& loglik)
+{
+  const double c1 = 1e-4, c2 = 0.9; // Wolfe constants
+  const double l = loglik;
+  const vec p = par, g = grad;
+  double alpha = 5., b = 0., a = arma::dot(grad, descent);
+  if (a >= 0.)
+  {
+    Rcpp::warning("\tResistanceOptim: not a descent direction, resetting Hessian");
+    return 0.; //restarts Hessian
+  }
+
+  for (uword i=0; i<maxiter; ++i)
+  {
+    alpha *= 0.2;
+    par = p + alpha * descent;
+    loglik = likelihood_cov(par, grad, variable);
+    b = arma::dot(grad, descent);
+    if (arma::is_finite(b) && (std::fabs(b) <= c2*std::fabs(a) || b <= 0.))
+      return alpha;
+  }
+  Rcpp::warning("\tResistanceOptim: failed to find sufficient decrease, resetting Hessian");
+  par = p; grad = g; loglik = l;
+  return 0.; //restarts Hessian
+}
+
+double ResistanceOptim::optimize_cov (vec& par, vec& grad, mat& hess, const uvec& variable)
+{
+  grad = arma::zeros<vec>(par.n_elem);
+  hess = arma::eye<mat>(par.n_elem, par.n_elem);
+  double loglik = likelihood_cov(par, grad, variable); 
+
+  for(iter=0; iter<maxiter; ++iter)
+    if (BFGS(par, grad, hess, variable, loglik) < outer_tol)
+      return loglik;
+
+  Rcpp::warning("ResistanceOptim: BFGS did not converge");
+  return loglik;
+}
+
+// using covariance rather than distance
+double ResistanceOptim::likelihood_cov (const vec& par, vec& grad, const uvec& variable)
+{
+  // the first <> parameters are for the resistance surface
+  // the remaining parameters are for the binomial random field
+  vec resistance_par = par.head(resistance.npars);
+  vec field_par = par.tail(par.n_elem - resistance.npars);
+
+  // calculate resistance distance
+  subproblem.D.slice(0) = eigen2arma(resistance.resistance_covariance<Link::Log>(arma2eigen(resistance_par)));
+
+  vec tmp = {1., 1.};
+  field_par = arma::join_horiz(tmp, field_par); 
+  Parameters<Prior::MLE> p(subproblem, field_par);
+  double result = subproblem.likelihood<Covariance::Weighted, Prior::MLE>(p, variable);
+
+  // of resistance stuff
+  vec resistance_gradient = eigen2arma(resistance.rd_resistance_covariance<Link::Log>(arma2eigen(subproblem.gradient_distance.slice(0))));
+
+  // of other stuff
+  vec field_gradient = subproblem.gradient;
+  field_gradient.shed_rows(0,1);//this drops what normally we be the stddev and range
+
+  //
+  grad = arma::join_vert(resistance_gradient, field_gradient);
+
+  // verbose
+  Rcpp::Rcout << iter << " " << double(subproblem.dim)*result << " " << par << std::endl;
+
+  return result;
+}
 
 template <class Spatial, class Prior>
-double ResistanceOptim::likelihood (const vec& par, const uvec& variable)
+double ResistanceOptim::likelihood (const vec& par, vec& grad, const uvec& variable)
 {
   ++iter;
 
@@ -146,23 +199,25 @@ double ResistanceOptim::likelihood (const vec& par, const uvec& variable)
   // the optimizer can get "stuck" (this is especially a problem with the rates).
   start = arma::clamp(result.tail(result.n_elem - 1), -3, 3); // restricted to interval [-3, 3]
 
-  gradient = eigen2arma(resistance.rd_resistance_distances<Link::ReciprocalLogit>(arma2eigen(subproblem.gradient_distance.slice(0))));
+  grad = eigen2arma(resistance.rd_resistance_distances<Link::ReciprocalLogit>(arma2eigen(subproblem.gradient_distance.slice(0))));
 
   // verbose
-  print (par, result);
+  print (par, grad, result);
 
   return result(0);
 }
 
 template <class Spatial, class Prior>
-vec ResistanceOptim::optimize (const vec& start, const uvec& variable, const double outer_tol) 
+vec ResistanceOptim::optimize (const vec& start, const uvec& variable)
 {
   if (start.n_elem != resistance.npars)
     Rcpp::stop("ResistanceOptim: inconsistent dimensions");
 
   iter = 0;
 
-  auto loglik = [&] (const dlib_mat& par) { return likelihood<Spatial, Prior>(dlib2arma(par), variable); };
+  vec gradient = arma::zeros<vec>(size(start));
+
+  auto loglik = [&] (const dlib_mat& par) { return likelihood<Spatial, Prior>(dlib2arma(par), gradient, variable); };
   auto grad   = [&] (const dlib_mat& par) { return arma2dlib(gradient); };
 
   auto pars = arma2dlib (start);
@@ -184,8 +239,9 @@ vec ResistanceOptim::optimize_global (const vec& lower, const vec& upper, const 
     Rcpp::stop("ResistanceOptim: inconsistent dimensions");
 
   iter = 0;
+  vec gradient (lower.n_elem);
 
-  auto loglik = [&] (const dlib::matrix<double,0L,1L>& par) { return likelihood<Spatial, Prior>(dlib2arma(par), variable); };
+  auto loglik = [&] (const dlib::matrix<double,0L,1L>& par) { return likelihood<Spatial, Prior>(dlib2arma(par), gradient, variable); };
 
   auto result = dlib::find_min_global
     (loglik, arma2dlib_vec(lower), arma2dlib_vec(upper),
@@ -202,24 +258,25 @@ vec ResistanceOptim::grid (const mat& par, const uvec& variable, cube& rd)
     Rcpp::stop("ResistanceOptim: inconsistent dimensions");
 
   vec out (par.n_rows);
+  vec gradient (par.n_cols);
   rd = arma::zeros<cube>(subproblem.n_popul, subproblem.n_popul, par.n_rows);
   for (uword i=0; i<par.n_rows; ++i)
   {
-    out(i) = likelihood<Spatial, Prior>(par.row(i).t(), variable);
+    out(i) = likelihood<Spatial, Prior>(par.row(i).t(), gradient, variable);
     rd.slice(i) = subproblem.D.slice(0);
   }
 
   return out;
 }
 
-void ResistanceOptim::print (const vec& par, const vec& result) const
+void ResistanceOptim::print (const vec& par, const vec& grad, const vec& result) const
 {
   if (verbose > 0)
   {
     Rcpp::Rcout << 
       "Iter " << iter << 
       ", |f(x)| = " << result(0) << 
-      ", |f'(x)| = " << arma::norm(gradient) <<
+      ", |f'(x)| = " << arma::norm(grad) <<
       ", subproblem solved in " << subproblem.iter << 
       " iterations with |g'(x)| = " << arma::norm(subproblem.gradient) <<
       std::endl;
@@ -227,7 +284,7 @@ void ResistanceOptim::print (const vec& par, const vec& result) const
   if (verbose > 1)
   {
     par.t().print("Parameters:");
-    gradient.t().print("Gradient:");
+    grad.t().print("Gradient:");
     result.tail(result.n_elem-1).t().print("Subproblem parameters:");
     subproblem.gradient.t().print("Subproblem gradient:");
   }
@@ -240,11 +297,12 @@ Rcpp::List test_ResistanceOptim_likelihood (const arma::vec& pars, const arma::u
                                             const arma::cube& D, const Eigen::MatrixXd& S, const std::vector<unsigned>& T, const Eigen::MatrixXi& A)
 {
   Problem subproblem (N, Y, X, Z, D, 2, true);
-  ResistanceOptim model (subproblem, S, T, A, 1e-10, 100, 1);
-  double ll = model.likelihood<Covariance::Matern, Prior::MLE> (pars, variable);
+  ResistanceOptim model (subproblem, S, T, A, 1e-10, 1e-4, 100, 1);
+  vec grad = arma::zeros<vec>(pars.n_elem);
+  double ll = model.likelihood<Covariance::Matern, Prior::MLE> (pars, grad, variable);
   return Rcpp::List::create (Rcpp::_["loglik"] = ll,
                              Rcpp::_["start"] = model.start,
-                             Rcpp::_["gradient"] = model.gradient,
+                             Rcpp::_["gradient"] = grad,
                              Rcpp::_["subproblem_gradient"] = model.subproblem.gradient);
 }
 
@@ -266,12 +324,11 @@ Rcpp::List test_ResistanceOptim_optimize (const arma::vec& pars, const arma::uve
                                           const arma::cube& D, const Eigen::MatrixXd& S, const std::vector<unsigned>& T, const Eigen::MatrixXi& A, const arma::uword verbose)
 {
   Problem subproblem (N, Y, X, Z, D, 2, true);
-  ResistanceOptim model (subproblem, S, T, A, 1e-10, 100, verbose);
-  auto result = model.optimize<Covariance::Matern, Prior::MLE> (pars, variable, 1e-7);
+  ResistanceOptim model (subproblem, S, T, A, 1e-10, 1e-4, 100, verbose);
+  auto result = model.optimize<Covariance::Matern, Prior::MLE> (pars, variable);
   return Rcpp::List::create (Rcpp::_["loglik"] = result(0),
                              Rcpp::_["par"] = result.tail(result.n_elem - 1),
                              Rcpp::_["start"] = model.start,
-                             Rcpp::_["gradient"] = model.gradient,
                              Rcpp::_["subproblem_gradient"] = model.subproblem.gradient);
 }
 
@@ -281,12 +338,11 @@ Rcpp::List test_ResistanceOptim_optimize_global (const arma::vec& lb, const arma
                                                  const arma::uword verbose)
 {
   Problem subproblem (N, Y, X, Z, D, 2, true);
-  ResistanceOptim model (subproblem, S, T, A, 1e-10, 100, verbose);
+  ResistanceOptim model (subproblem, S, T, A, 1e-10, 1e-4, 100, verbose);
   auto result = model.optimize_global<Covariance::Matern, Prior::MLE> (lb, ub, variable);
   return Rcpp::List::create (Rcpp::_["loglik"] = result(0),
                              Rcpp::_["par"] = result.tail(result.n_elem - 1),
                              Rcpp::_["start"] = model.start,
-                             Rcpp::_["gradient"] = model.gradient,
                              Rcpp::_["subproblem_gradient"] = model.subproblem.gradient);
 }
 
@@ -295,7 +351,7 @@ Rcpp::List test_ResistanceOptim_grid (const arma::mat& pars, const arma::uvec& v
                                       const Eigen::MatrixXd& S, const std::vector<unsigned>& T, const Eigen::MatrixXi& A)
 {
   Problem subproblem (N, Y, X, Z, D, 2, true);
-  ResistanceOptim model (subproblem, S, T, A, 1e-10, 100, 1);
+  ResistanceOptim model (subproblem, S, T, A, 1e-10, 1e-3, 100, 1);
   cube rd;
   auto result = model.grid<Covariance::Matern, Prior::MLE> (pars, variable, rd);
   return Rcpp::List::create (Rcpp::_["loglik"] = result,

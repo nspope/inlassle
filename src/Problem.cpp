@@ -2,6 +2,7 @@
 #include "Matern.hpp"
 #include "Parameters.hpp"
 #include "Likelihood.hpp"
+#include "Weighted.hpp"
 #include "Priors.hpp"
 #include <dlib/optimization.h> 
 #include "dlib_modified_newton.hpp"
@@ -125,6 +126,22 @@ Rcpp::List test_Problem_likelihood (arma::mat N, arma::mat Y, arma::mat X, arma:
   uvec f = arma::ones<uvec>(p.n_elem);
   Parameters<Prior::MLE> parm (prob, p);
   double ll = prob.likelihood<Covariance::Matern, Prior::MLE>(parm, f);
+  return Rcpp::List::create(
+      Rcpp::_["loglik"] = ll,
+      Rcpp::_["gradient"] = prob.gradient,
+      Rcpp::_["hessian"] = prob.hessian
+      );
+}
+
+// [[Rcpp::export("inlassle_test_Problem_likelihood_cov")]]
+Rcpp::List test_Problem_likelihood_cov (arma::mat N, arma::mat Y, arma::mat X, arma::mat Z, arma::cube D, arma::vec v, arma::vec s, arma::vec b, bool parallel) 
+{
+  Problem prob (N, Y, X, Z, D, 2, parallel);
+  vec t = arma::ones<vec>(D.n_slices + 1);
+  vec p = arma::join_vert(t, arma::join_vert(v, arma::join_vert(s, b)));
+  uvec f = arma::ones<uvec>(p.n_elem);
+  Parameters<Prior::MLE> parm (prob, p);
+  double ll = prob.likelihood<Covariance::Weighted, Prior::MLE>(parm, f);
   return Rcpp::List::create(
       Rcpp::_["loglik"] = ll,
       Rcpp::_["gradient"] = prob.gradient,

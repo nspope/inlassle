@@ -83,6 +83,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_Likelihood_cov
+Rcpp::List test_Likelihood_cov(arma::mat N, arma::mat Y, arma::mat X, arma::mat Z, arma::cube D, arma::vec v, arma::vec s, arma::vec b, bool parallel);
+RcppExport SEXP _inlassle_test_Likelihood_cov(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP vSEXP, SEXP sSEXP, SEXP bSEXP, SEXP parallelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type N(NSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type v(vSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_Likelihood_cov(N, Y, X, Z, D, v, s, b, parallel));
+    return rcpp_result_gen;
+END_RCPP
+}
 // test_Matern_C
 arma::mat test_Matern_C(arma::cube D, double nu, double delta, arma::vec pars);
 RcppExport SEXP _inlassle_test_Matern_C(SEXP DSEXP, SEXP nuSEXP, SEXP deltaSEXP, SEXP parsSEXP) {
@@ -233,6 +252,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_Problem_likelihood_cov
+Rcpp::List test_Problem_likelihood_cov(arma::mat N, arma::mat Y, arma::mat X, arma::mat Z, arma::cube D, arma::vec v, arma::vec s, arma::vec b, bool parallel);
+RcppExport SEXP _inlassle_test_Problem_likelihood_cov(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP vSEXP, SEXP sSEXP, SEXP bSEXP, SEXP parallelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type N(NSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type v(vSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type s(sSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_Problem_likelihood_cov(N, Y, X, Z, D, v, s, b, parallel));
+    return rcpp_result_gen;
+END_RCPP
+}
 // test_Problem_optimize
 arma::vec test_Problem_optimize(arma::mat N, arma::mat Y, arma::mat X, arma::vec Z, arma::cube D, arma::uvec f, bool parallel, double tol);
 RcppExport SEXP _inlassle_test_Problem_optimize(SEXP NSEXP, SEXP YSEXP, SEXP XSEXP, SEXP ZSEXP, SEXP DSEXP, SEXP fSEXP, SEXP parallelSEXP, SEXP tolSEXP) {
@@ -248,6 +286,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     rcpp_result_gen = Rcpp::wrap(test_Problem_optimize(N, Y, X, Z, D, f, parallel, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_HomeierRule
+Rcpp::List test_HomeierRule(arma::uword order, double gamma);
+RcppExport SEXP _inlassle_test_HomeierRule(SEXP orderSEXP, SEXP gammaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::uword >::type order(orderSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_HomeierRule(order, gamma));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -468,6 +518,48 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_Weighted_C
+arma::mat test_Weighted_C(arma::cube D, double nu, double delta, arma::vec pars);
+RcppExport SEXP _inlassle_test_Weighted_C(SEXP DSEXP, SEXP nuSEXP, SEXP deltaSEXP, SEXP parsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pars(parsSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_Weighted_C(D, nu, delta, pars));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_Weighted_dC_dt
+arma::mat test_Weighted_dC_dt(arma::cube D, double nu, double delta, arma::vec pars);
+RcppExport SEXP _inlassle_test_Weighted_dC_dt(SEXP DSEXP, SEXP nuSEXP, SEXP deltaSEXP, SEXP parsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pars(parsSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_Weighted_dC_dt(D, nu, delta, pars));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_Weighted_dC_dD
+arma::cube test_Weighted_dC_dD(arma::cube D, double nu, double delta, arma::vec pars);
+RcppExport SEXP _inlassle_test_Weighted_dC_dD(SEXP DSEXP, SEXP nuSEXP, SEXP deltaSEXP, SEXP parsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pars(parsSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_Weighted_dC_dD(D, nu, delta, pars));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP _rcpp_module_boot_inlassle();
 
@@ -477,6 +569,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_inlassle_test_Gaussian_dC_dt", (DL_FUNC) &_inlassle_test_Gaussian_dC_dt, 4},
     {"_inlassle_test_Gaussian_dC_dD", (DL_FUNC) &_inlassle_test_Gaussian_dC_dD, 4},
     {"_inlassle_test_Likelihood", (DL_FUNC) &_inlassle_test_Likelihood, 10},
+    {"_inlassle_test_Likelihood_cov", (DL_FUNC) &_inlassle_test_Likelihood_cov, 9},
     {"_inlassle_test_Matern_C", (DL_FUNC) &_inlassle_test_Matern_C, 4},
     {"_inlassle_test_Matern_dC_dt", (DL_FUNC) &_inlassle_test_Matern_dC_dt, 4},
     {"_inlassle_test_Matern_dC_dD", (DL_FUNC) &_inlassle_test_Matern_dC_dD, 4},
@@ -488,7 +581,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_inlassle_test_LKJ_jac", (DL_FUNC) &_inlassle_test_LKJ_jac, 3},
     {"_inlassle_test_LogBetaPrime", (DL_FUNC) &_inlassle_test_LogBetaPrime, 3},
     {"_inlassle_test_Problem_likelihood", (DL_FUNC) &_inlassle_test_Problem_likelihood, 10},
+    {"_inlassle_test_Problem_likelihood_cov", (DL_FUNC) &_inlassle_test_Problem_likelihood_cov, 9},
     {"_inlassle_test_Problem_optimize", (DL_FUNC) &_inlassle_test_Problem_optimize, 8},
+    {"_inlassle_test_HomeierRule", (DL_FUNC) &_inlassle_test_HomeierRule, 2},
     {"_inlassle_test_ResistanceOptim_likelihood", (DL_FUNC) &_inlassle_test_ResistanceOptim_likelihood, 10},
     {"_inlassle_test_ResistanceOptim_optimize", (DL_FUNC) &_inlassle_test_ResistanceOptim_optimize, 11},
     {"_inlassle_test_ResistanceOptim_optimize_global", (DL_FUNC) &_inlassle_test_ResistanceOptim_optimize_global, 12},
@@ -504,6 +599,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_inlassle_inlassle_test_Gradient", (DL_FUNC) &_inlassle_inlassle_test_Gradient, 4},
     {"_inlassle_inlassle_test_Gradient_dC", (DL_FUNC) &_inlassle_inlassle_test_Gradient_dC, 1},
     {"_inlassle_inlassle_test_Hessian", (DL_FUNC) &_inlassle_inlassle_test_Hessian, 4},
+    {"_inlassle_test_Weighted_C", (DL_FUNC) &_inlassle_test_Weighted_C, 4},
+    {"_inlassle_test_Weighted_dC_dt", (DL_FUNC) &_inlassle_test_Weighted_dC_dt, 4},
+    {"_inlassle_test_Weighted_dC_dD", (DL_FUNC) &_inlassle_test_Weighted_dC_dD, 4},
     {"_rcpp_module_boot_inlassle", (DL_FUNC) &_rcpp_module_boot_inlassle, 0},
     {NULL, NULL, 0}
 };

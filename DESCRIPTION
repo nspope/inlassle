@@ -1,6 +1,6 @@
 Package: inlassle
 Title: Fast Optimization of Resistance Surfaces with SNPs
-Version: 0.0.2.0
+Version: 0.0.3.0
 Authors@R: person("Nathaniel S.", "Pope", email = "nspope@utexas.edu", role = c("aut", "cre"))
 Description: blah blah
 Depends: R (>= 3.4.0)

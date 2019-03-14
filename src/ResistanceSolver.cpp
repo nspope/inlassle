@@ -445,6 +445,90 @@ VectorXd ResistanceSolver::rd_resistance_distances (MatrixXd D)
   return map3._parameters;
 }
 
+template <class LinkFn>
+MatrixXd ResistanceSolver::resistance_covariance (const VectorXd pars)
+{
+  // calculate conductances
+  map_data_to_conductance<LinkFn> map1 (*this, pars);
+  if (parallel)
+    RcppParallel::parallelFor (0, dim, map1);
+  else
+    map1 (0, dim);
+
+  // compute cell values in the Laplacian
+  map_conductance_to_adjacency map2 (*this);
+  if (parallel)
+    RcppParallel::parallelReduce (0, dim-1, map2);
+  else
+    map2 (0, dim-1);
+  rates = map2._rates;
+  adjacency.diagonal() = rates;
+
+  // factorize Laplacian
+  solver.factorize(adjacency); 
+
+  // solve multiple right hand sides: 
+  MatrixXd Lp = MatrixXd::Zero(targets.cols(), targets.cols());
+  solve_laplacian solver (*this, Lp);
+  if (parallel)
+    RcppParallel::parallelFor (0, targets.cols(), solver);
+  else
+    solver (0, targets.cols());
+
+  // rescale by dimension
+  Lp /= double(dim);
+
+  return Lp;
+}
+
+template <class LinkFn>
+VectorXd ResistanceSolver::rd_resistance_covariance (MatrixXd D)
+{
+  if (D.cols() != Rd.cols() || D.rows() != Rd.rows())
+    Rcpp::stop("Dimension mismatch");
+
+  // make sure D is symmetric ...
+  D += D.transpose().eval();
+  D /= 2.;
+
+  // rescale by dimension
+  D /= double(dim);
+
+  // see rd_resistance_distances for discussion
+  map_gradient_to_cells map1 (*this, D);
+  if (parallel)
+    RcppParallel::parallelFor (0, dim-1, map1);
+  else
+    map1 (0, dim-1);
+
+  // loop over non-zeros of adjacency matrix, calculate differential for each element;
+  // and then pass back to vector of differential for conductances
+  map_cells_to_conductance map2 (*this); 
+  if (parallel)
+    RcppParallel::parallelReduce (0, dim-1, map2);
+  else
+    map2 (0, dim-1);
+
+  // the conductance of edges leading to the "dropped" node "j" must also be included.
+  for (auto& i : ground)
+  {
+    map2._conductance (dim-1)   += rd_conductances(i.first);
+    map2._conductance (i.first) += rd_conductances(i.first);
+  }
+
+  // copy over from Worker
+  rd_conductances = map2._conductance;
+
+  // finally map back onto the parameters
+  map_conductance_to_parameters<LinkFn> map3 (*this);
+  if (parallel)
+    RcppParallel::parallelReduce (0, dim, map3);
+  else
+    map3 (0, dim);
+
+  return map3._parameters;
+}
+
 MatrixXd ResistanceSolver::getAdjacency (void)
 {
   return MatrixXd(adjacency); //at some point can we return sparse matrix?
@@ -507,6 +591,17 @@ VectorXd ResistanceSolver::rd_resistance_distances_identity (MatrixXd input)
   return rd_resistance_distances<Link::Identity> (input);
 }
 
+//
+MatrixXd ResistanceSolver::resistance_covariance_log (const VectorXd input)
+{
+  return resistance_covariance<Link::Log> (input);
+}
+
+VectorXd ResistanceSolver::rd_resistance_covariance_log (MatrixXd input)
+{
+  return rd_resistance_covariance<Link::Log> (input);
+}
+
 // [[Rcpp::export]]
 void testlink ()
 {
@@ -552,6 +647,8 @@ RCPP_MODULE(inlassle) {
     .method("rd_resistance_distances_rlogit", &ResistanceSolver::rd_resistance_distances_rlogit)
     .method("rd_resistance_distances_softplus", &ResistanceSolver::rd_resistance_distances_softplus)
     .method("rd_resistance_distances_identity", &ResistanceSolver::rd_resistance_distances_identity)
+    .method("resistance_covariance_log", &ResistanceSolver::resistance_covariance_log)
+    .method("rd_resistance_covariance_log", &ResistanceSolver::rd_resistance_covariance_log)
     .method("getAdjacency", &ResistanceSolver::getAdjacency)
     .method("getLaplacianDiagonal", &ResistanceSolver::getLaplacianDiagonal)
     .method("getConductance", &ResistanceSolver::getConductance)

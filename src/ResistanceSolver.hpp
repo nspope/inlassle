@@ -21,6 +21,20 @@ namespace Link
 {
 
   /* link functions that map linear predictor to conductance */
+
+  struct Log
+  {
+    double operator() (const double x) const
+    {
+      return exp(x);
+    }
+
+    double deriv (const double p) const
+    {
+      return p;
+    }
+  };
+
   struct Logit
   {
     double operator() (const double x) const
@@ -49,6 +63,7 @@ namespace Link
 
   struct ReciprocalLogit
   {
+    //equivalent to logit on resistances; seems to work better than just conductance
     double operator() (const double x) const
     {
       return 1. + exp(-x);
@@ -136,6 +151,8 @@ struct ResistanceSolver
   SpMatrix make_targets (const UiVector&);
   template <class LinkFn> MatrixXd resistance_distances (const VectorXd);
   template <class LinkFn> VectorXd rd_resistance_distances (MatrixXd);
+  template <class LinkFn> MatrixXd resistance_covariance (const VectorXd);
+  template <class LinkFn> VectorXd rd_resistance_covariance (MatrixXd);
   MatrixXd getAdjacency (void);
   VectorXd getLaplacianDiagonal (void);
   VectorXd getConductance (void);
@@ -150,6 +167,9 @@ struct ResistanceSolver
   VectorXd rd_resistance_distances_softplus (MatrixXd);
   MatrixXd resistance_distances_identity (const VectorXd);
   VectorXd rd_resistance_distances_identity (MatrixXd);
+
+  MatrixXd resistance_covariance_log (const VectorXd);
+  VectorXd rd_resistance_covariance_log (MatrixXd);
 };
 
 template <class LinkFn>

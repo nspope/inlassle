@@ -21,6 +21,10 @@ inlassle_test_Likelihood <- function(N, Y, X, Z, D, t, v, s, b, parallel) {
     .Call('_inlassle_test_Likelihood', PACKAGE = 'inlassle', N, Y, X, Z, D, t, v, s, b, parallel)
 }
 
+inlassle_test_Likelihood_cov <- function(N, Y, X, Z, D, v, s, b, parallel) {
+    .Call('_inlassle_test_Likelihood_cov', PACKAGE = 'inlassle', N, Y, X, Z, D, v, s, b, parallel)
+}
+
 inlassle_test_Matern_C <- function(D, nu, delta, pars) {
     .Call('_inlassle_test_Matern_C', PACKAGE = 'inlassle', D, nu, delta, pars)
 }
@@ -65,8 +69,16 @@ inlassle_test_Problem_likelihood <- function(N, Y, X, Z, D, t, v, s, b, parallel
     .Call('_inlassle_test_Problem_likelihood', PACKAGE = 'inlassle', N, Y, X, Z, D, t, v, s, b, parallel)
 }
 
+inlassle_test_Problem_likelihood_cov <- function(N, Y, X, Z, D, v, s, b, parallel) {
+    .Call('_inlassle_test_Problem_likelihood_cov', PACKAGE = 'inlassle', N, Y, X, Z, D, v, s, b, parallel)
+}
+
 inlassle_test_Problem_optimize <- function(N, Y, X, Z, D, f, parallel, tol) {
     .Call('_inlassle_test_Problem_optimize', PACKAGE = 'inlassle', N, Y, X, Z, D, f, parallel, tol)
+}
+
+inlassle_test_HomeierRule <- function(order, gamma) {
+    .Call('_inlassle_test_HomeierRule', PACKAGE = 'inlassle', order, gamma)
 }
 
 inlassle_test_ResistanceOptim_likelihood <- function(pars, variable, N, Y, X, Z, D, S, T, A) {
@@ -130,5 +142,17 @@ inlassle_test_Gradient_dC <- function(dC) {
 
 inlassle_test_Hessian <- function(dt, dv, ds, db) {
     .Call('_inlassle_inlassle_test_Hessian', PACKAGE = 'inlassle', dt, dv, ds, db)
+}
+
+inlassle_test_Weighted_C <- function(D, nu, delta, pars) {
+    .Call('_inlassle_test_Weighted_C', PACKAGE = 'inlassle', D, nu, delta, pars)
+}
+
+inlassle_test_Weighted_dC_dt <- function(D, nu, delta, pars) {
+    .Call('_inlassle_test_Weighted_dC_dt', PACKAGE = 'inlassle', D, nu, delta, pars)
+}
+
+inlassle_test_Weighted_dC_dD <- function(D, nu, delta, pars) {
+    .Call('_inlassle_test_Weighted_dC_dD', PACKAGE = 'inlassle', D, nu, delta, pars)
 }
 

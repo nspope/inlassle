@@ -16,8 +16,7 @@
   miss <- sample(c(TRUE,FALSE), p, prob = c(miss, 1-miss), replace=TRUE)
   N[miss] <- Y[miss] <- 0
   Qm <- solve(C[!miss,!miss,drop=FALSE])
-
-  obj <- function(x) 
+obj <- function(x) 
     0.5*t(x-mu[!miss])%*%Qm%*%(x-mu[!miss]) - 
       sum(-lchoose(N[!miss], Y[!miss]) + dbinom(Y[!miss], N[!miss], plogis(x), log=TRUE))
   obj_lp <- function(mu, C) inlassle_test_Field (Y, N, mu, solve(C))$lapapp
@@ -45,6 +44,61 @@
   cs[["dlp_dC"]] <- out$dlp_dC
 
   tst <- sapply(1:length(cs), function(i) .near(gs[[i]], cs[[i]]))
+  tst 
+}
+
+.test_Likelihood_cov <- function(seed = 1, n = 10, p = 10, l = 100, miss = 0)
+{
+  set.seed(seed)
+  Y <- matrix(rbinom(p*l, prob=rbeta(p*l,1,1), size=n), p, l)
+  N <- matrix(n, p, l)
+  X <- cbind(rep(1,p),rnorm(p))
+  Z <- X
+  D <- rWishart(1,n,diag(n))[,,1]
+  D <- array(D,c(n,n,1))
+  t <- c(0, 0)
+  v <- c(0.3, -0.4, 0.2)
+  s <- rnorm(2)
+  b <- c(-0.2, 0.2)
+  miss <- sample(c(TRUE,FALSE), prob = c(miss, 1-miss), p * l, replace=TRUE)
+  Y[miss] <- N[miss] <- 0
+
+  obj <- function(t, v, s, b, D)
+  {
+    t <- exp(t)
+    C <- inlassle_test_Weighted_C(D, 2, 0.1, t)
+    L <- matrix(0, length(b), length(b))
+    L[lower.tri(L, diag=TRUE)] <- v
+    P <- diag(exp(diag(L))) #log LDL
+    diag(L) <- 1
+    L <- L %*% P
+    S <- c(exp(2 * Z %*% s))
+    Q <- solve(C + X %*% L %*% t(L) %*% t(X) + diag(S))
+    mu <- X %*% b
+    ll <- sum(sapply(1:ncol(N), function(l)
+           inlassle_test_Field (Y[,l], N[,l], mu, Q)$lapapp))
+    list(ll=ll/ncol(N), Q=Q)
+  }
+
+  obj2 <- function(v, s, b, D)
+    inlassle_test_Likelihood_cov (N, Y, X, Z, D, v, s, b, TRUE)[["loglik"]]
+
+  obj3 <- function(i)
+    inlassle_test_Likelihood_cov (N[,i,drop=F], Y[,i,drop=F], X, Z, D, v, s, b, TRUE)[["gradient"]]
+  grad_by_locus <- sapply(1:ncol(N), obj3)
+
+  gs <- list()
+  gs[["Q"]] <- obj (t, v, s, b, D)$Q
+  gs[["loglik"]] <- obj (t, v, s, b, D)$ll
+  gs[["gradient"]] <- numDeriv::grad(function(x) obj2(
+                                                      x[1:length(v)], 
+                                                      x[(length(v)+1):(length(v)+length(s))], 
+                                                      x[(length(v)+length(s)+1):length(x)], D), c(v,s,b))
+  gs[["gradient_distance"]] <- array(.symm(matrix(numDeriv::grad(function(D) obj2(v, s, b, D), D),p,p)), dim=c(p, p, 1))
+
+  cs <- inlassle_test_Likelihood_cov (N, Y, X, Z, D, v, s, b, TRUE)
+
+  tst <- sapply(1:length(gs), function(i) .near(gs[[i]], cs[[i]], tol=1e-5/l))
   tst 
 }
 
