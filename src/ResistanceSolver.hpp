@@ -159,6 +159,8 @@ struct ResistanceSolver
   VectorXd getGradConductance (void);
 
   // wrappers for R API
+  MatrixXd resistance_distances_log (const VectorXd);
+  VectorXd rd_resistance_distances_log (MatrixXd);
   MatrixXd resistance_distances_logit (const VectorXd);
   VectorXd rd_resistance_distances_logit (MatrixXd);
   MatrixXd resistance_distances_rlogit (const VectorXd);
@@ -170,6 +172,14 @@ struct ResistanceSolver
 
   MatrixXd resistance_covariance_log (const VectorXd);
   VectorXd rd_resistance_covariance_log (MatrixXd);
+  MatrixXd resistance_covariance_logit (const VectorXd);
+  VectorXd rd_resistance_covariance_logit (MatrixXd);
+  MatrixXd resistance_covariance_rlogit (const VectorXd);
+  VectorXd rd_resistance_covariance_rlogit (MatrixXd);
+  MatrixXd resistance_covariance_softplus (const VectorXd);
+  VectorXd rd_resistance_covariance_softplus (MatrixXd);
+  MatrixXd resistance_covariance_identity (const VectorXd);
+  VectorXd rd_resistance_covariance_identity (MatrixXd);
 };
 
 template <class LinkFn>

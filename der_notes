@@ -1,0 +1,15 @@
+
+uk = eigen(t(L))$vectors[,9]
+vk = eigen(L)$vectors[,9]
+
+b<-diag(9)[,1]
+
+Lr = L[-9,-9]
+br3 = ((diag(9) - vk%*%t(vk)) %*% b)[-9]
+
+c(br3, 0) %*% rbind(cbind(solve(Lr),0),0) %*% (diag(9) - uk%*%t(uk)) %*% rbind(cbind(solve(t(Lr)),0),0) %*% c(br3,0)
+
+  deriv:
+-2 * t(Lr0) %*% c(br3,0) %*% t(c(br3,0)) %*% Lr0 %*% (diag(9) - uk %*% t(uk)) %*% t(Lr0)
+
+

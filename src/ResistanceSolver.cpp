@@ -324,19 +324,20 @@ MatrixXd ResistanceSolver::resistance_distances (const VectorXd pars)
   Rd.rowwise() += Lp.diagonal().transpose();
   Rd.colwise() += Lp.diagonal();
 
-  // rescale by absolute value of determinant;
-  // for distance matrices the sign depends on whether there is an odd or even number of entries.
-  // we do calculations in a log-space via the LU decomposition for stability (as entries in Rd can be very large)
-  logdet = 0;
-  LuDecomp lu(Rd);
-  auto& lu_mat = lu.matrixLU();
-  for (unsigned i=0; i < lu_mat.rows(); ++i) 
-    logdet += log(std::fabs(lu_mat(i,i)));
-  logdet *= -1./double(lu_mat.rows());
-  for (unsigned i=0; i < lu_mat.rows(); ++i) 
-    for (unsigned j=i+1; j < lu_mat.rows(); ++j)
-      Rd(i,j) = Rd(j,i) = exp(log(Rd(j,i)) + logdet);
-  Rdinv = lu.inverse();
+  //DON'T RESCALE
+  //// rescale by absolute value of determinant;
+  //// for distance matrices the sign depends on whether there is an odd or even number of entries.
+  //// we do calculations in a log-space via the LU decomposition for stability (as entries in Rd can be very large)
+  //logdet = 0;
+  //LuDecomp lu(Rd);
+  //auto& lu_mat = lu.matrixLU();
+  //for (unsigned i=0; i < lu_mat.rows(); ++i) 
+  //  logdet += log(std::fabs(lu_mat(i,i)));
+  //logdet *= -1./double(lu_mat.rows());
+  //for (unsigned i=0; i < lu_mat.rows(); ++i) 
+  //  for (unsigned j=i+1; j < lu_mat.rows(); ++j)
+  //    Rd(i,j) = Rd(j,i) = exp(log(Rd(j,i)) + logdet);
+  //Rdinv = lu.inverse();
 
   return Rd;
 }
@@ -351,14 +352,15 @@ VectorXd ResistanceSolver::rd_resistance_distances (MatrixXd D)
   D += D.transpose().eval();
   D /= 2.;
 
-  // d = abs(det(R))^(-1/n), thus
-  //   d(d)/dR = -1/n * abs(det(R))^(-1/n) * solve(R)
-  // if passing back a matrix of sensitivities D for f(d) = A = X * d, then
-  //   df/R_ij = d(d)/d(R_ij) * sum(X * D), e.g. we have D' = -1/n * solve(R) * abs(det(R))^(-1/n) * sum(X * D)
-  // now, if X = R, then 
-  //   by product rule we have update D' = -1/n * solve(R) * abs(det(R))^(-1/n) * sum(X * D) + D * abs(det(R))^(-1/n)
-  //                                     = abs(det(R))^(-1/n) * D - solve(R) * sum(A * D)/n)
-  MatrixXd D1 = exp(logdet) * D - Rdinv * (Rd.cwiseProduct(D)).sum()/double(Rd.rows());
+  //DON'T RESCALE
+  //// d = abs(det(R))^(-1/n), thus
+  ////   d(d)/dR = -1/n * abs(det(R))^(-1/n) * solve(R)
+  //// if passing back a matrix of sensitivities D for f(d) = A = X * d, then
+  ////   df/R_ij = d(d)/d(R_ij) * sum(X * D), e.g. we have D' = -1/n * solve(R) * abs(det(R))^(-1/n) * sum(X * D)
+  //// now, if X = R, then 
+  ////   by product rule we have update D' = -1/n * solve(R) * abs(det(R))^(-1/n) * sum(X * D) + D * abs(det(R))^(-1/n)
+  ////                                     = abs(det(R))^(-1/n) * D - solve(R) * sum(A * D)/n)
+  //MatrixXd D1 = exp(logdet) * D - Rdinv * (Rd.cwiseProduct(D)).sum()/double(Rd.rows());
 
   // R = -2*L + ones%*%diag(L)' + diag(L)%*%ones'
   MatrixXd D2 = -2*D1;
@@ -475,9 +477,6 @@ MatrixXd ResistanceSolver::resistance_covariance (const VectorXd pars)
   else
     solver (0, targets.cols());
 
-  // rescale by dimension
-  Lp /= double(dim);
-
   return Lp;
 }
 
@@ -490,9 +489,6 @@ VectorXd ResistanceSolver::rd_resistance_covariance (MatrixXd D)
   // make sure D is symmetric ...
   D += D.transpose().eval();
   D /= 2.;
-
-  // rescale by dimension
-  D /= double(dim);
 
   // see rd_resistance_distances for discussion
   map_gradient_to_cells map1 (*this, D);
@@ -551,6 +547,17 @@ VectorXd ResistanceSolver::getGradConductance (void)
 
 // wrappers around link functions for R API
 // TODO I would love to figure out a cleaner way to do this
+
+MatrixXd ResistanceSolver::resistance_distances_log (const VectorXd input)
+{
+  return resistance_distances<Link::Log> (input);
+}
+
+VectorXd ResistanceSolver::rd_resistance_distances_log (MatrixXd input)
+{
+  return rd_resistance_distances<Link::Log> (input);
+}
+
 MatrixXd ResistanceSolver::resistance_distances_logit (const VectorXd input)
 {
   return resistance_distances<Link::Logit> (input);
@@ -602,6 +609,47 @@ VectorXd ResistanceSolver::rd_resistance_covariance_log (MatrixXd input)
   return rd_resistance_covariance<Link::Log> (input);
 }
 
+MatrixXd ResistanceSolver::resistance_covariance_logit (const VectorXd input)
+{
+  return resistance_covariance<Link::Logit> (input);
+}
+
+VectorXd ResistanceSolver::rd_resistance_covariance_logit (MatrixXd input)
+{
+  return rd_resistance_covariance<Link::Logit> (input);
+}
+
+MatrixXd ResistanceSolver::resistance_covariance_rlogit (const VectorXd input)
+{
+  return resistance_covariance<Link::ReciprocalLogit> (input);
+}
+
+VectorXd ResistanceSolver::rd_resistance_covariance_rlogit (MatrixXd input)
+{
+  return rd_resistance_covariance<Link::ReciprocalLogit> (input);
+}
+
+MatrixXd ResistanceSolver::resistance_covariance_softplus (const VectorXd input)
+{
+  return resistance_covariance<Link::Softplus> (input);
+}
+
+VectorXd ResistanceSolver::rd_resistance_covariance_softplus (MatrixXd input)
+{
+  return rd_resistance_covariance<Link::Softplus> (input);
+}
+
+MatrixXd ResistanceSolver::resistance_covariance_identity (const VectorXd input)
+{
+  return resistance_covariance<Link::Identity> (input);
+}
+
+VectorXd ResistanceSolver::rd_resistance_covariance_identity (MatrixXd input)
+{
+  return rd_resistance_covariance<Link::Identity> (input);
+}
+
+
 // [[Rcpp::export]]
 void testlink ()
 {
@@ -639,16 +687,26 @@ RCPP_MODULE(inlassle) {
   using namespace Rcpp;
   class_<ResistanceSolver>("ResistanceSolver")
     .constructor<Eigen::MatrixXd, std::vector<unsigned>, Eigen::MatrixXi, bool>()
+    .method("resistance_distances_log", &ResistanceSolver::resistance_distances_log)
     .method("resistance_distances_logit", &ResistanceSolver::resistance_distances_logit)
     .method("resistance_distances_rlogit", &ResistanceSolver::resistance_distances_rlogit)
     .method("resistance_distances_softplus", &ResistanceSolver::resistance_distances_softplus)
     .method("resistance_distances_identity", &ResistanceSolver::resistance_distances_identity)
+    .method("rd_resistance_distances_log", &ResistanceSolver::rd_resistance_distances_log)
     .method("rd_resistance_distances_logit", &ResistanceSolver::rd_resistance_distances_logit)
     .method("rd_resistance_distances_rlogit", &ResistanceSolver::rd_resistance_distances_rlogit)
     .method("rd_resistance_distances_softplus", &ResistanceSolver::rd_resistance_distances_softplus)
     .method("rd_resistance_distances_identity", &ResistanceSolver::rd_resistance_distances_identity)
     .method("resistance_covariance_log", &ResistanceSolver::resistance_covariance_log)
+    .method("resistance_covariance_logit", &ResistanceSolver::resistance_covariance_logit)
+    .method("resistance_covariance_rlogit", &ResistanceSolver::resistance_covariance_rlogit)
+    .method("resistance_covariance_softplus", &ResistanceSolver::resistance_covariance_softplus)
+    .method("resistance_covariance_identity", &ResistanceSolver::resistance_covariance_identity)
     .method("rd_resistance_covariance_log", &ResistanceSolver::rd_resistance_covariance_log)
+    .method("rd_resistance_covariance_logit", &ResistanceSolver::rd_resistance_covariance_logit)
+    .method("rd_resistance_covariance_rlogit", &ResistanceSolver::rd_resistance_covariance_rlogit)
+    .method("rd_resistance_covariance_softplus", &ResistanceSolver::rd_resistance_covariance_softplus)
+    .method("rd_resistance_covariance_identity", &ResistanceSolver::rd_resistance_covariance_identity)
     .method("getAdjacency", &ResistanceSolver::getAdjacency)
     .method("getLaplacianDiagonal", &ResistanceSolver::getLaplacianDiagonal)
     .method("getConductance", &ResistanceSolver::getConductance)
