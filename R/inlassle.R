@@ -7,7 +7,8 @@ Rcpp::loadModule("inlassle", TRUE)
 #Rcpp::loadModule("randomfield", TRUE)
 
 ### tests
-test_ResistanceCov <- function(dim=5, seed=1, parallel=FALSE)
+### TODO: document purpose ...
+.test_ResistanceCov <- function(dim=5, seed=1, parallel=FALSE)
 {#test covariance calculation
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
@@ -31,7 +32,7 @@ test_ResistanceCov <- function(dim=5, seed=1, parallel=FALSE)
   list(Lp, Lp2)
 }
 
-test_ResistanceCov2 <- function(dim=5, seed=1, parallel=FALSE)
+.test_ResistanceCov2 <- function(dim=5, seed=1, parallel=FALSE)
 {
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
@@ -47,7 +48,7 @@ test_ResistanceCov2 <- function(dim=5, seed=1, parallel=FALSE)
   Rd2
 }
 
-test_ResistanceCov3 <- function(dim=5, seed=1, parallel=FALSE)
+.test_ResistanceCov3 <- function(dim=5, seed=1, parallel=FALSE)
 {#gradient calculation
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
@@ -66,8 +67,7 @@ test_ResistanceCov3 <- function(dim=5, seed=1, parallel=FALSE)
   list(Rd2, dRd2, emp)
 }
 
-#
-test_ResistanceSolver <- function(dim=5, seed=1, parallel=FALSE)
+.test_ResistanceSolver <- function(dim=5, seed=1, parallel=FALSE)
 {
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
@@ -94,7 +94,7 @@ test_ResistanceSolver <- function(dim=5, seed=1, parallel=FALSE)
   list(Rd, Rd2)
 }
 
-get_ResistanceNL <- function(dim=5, pts=3, seed=1, do_grid=FALSE, parallel=FALSE)
+.get_ResistanceNL <- function(dim=5, pts=3, seed=1, do_grid=FALSE, parallel=FALSE)
 {
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
@@ -121,7 +121,7 @@ get_ResistanceNL <- function(dim=5, pts=3, seed=1, do_grid=FALSE, parallel=FALSE
   list(Rd=Rd, E=E, Lp=Lp, Linv=Linv, r=rr, coords=coords)
 }
 
-test_ResistanceSolverNL <- function(dim=5, pts=3, seed=1, parallel=FALSE)
+.test_ResistanceSolverNL <- function(dim=5, pts=3, seed=1, parallel=FALSE)
 {
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
@@ -149,7 +149,7 @@ test_ResistanceSolverNL <- function(dim=5, pts=3, seed=1, parallel=FALSE)
   list(Rd, Rd2)
 }
 
-test_ResistanceSolver2 <- function(dim=5, seed=1, parallel=FALSE)
+.test_ResistanceSolver2 <- function(dim=5, seed=1, parallel=FALSE)
 {
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
@@ -165,7 +165,7 @@ test_ResistanceSolver2 <- function(dim=5, seed=1, parallel=FALSE)
   Rd2
 }
 
-test_ResistanceSolver3 <- function(dim=5, seed=1, parallel=FALSE)
+.test_ResistanceSolver3 <- function(dim=5, seed=1, parallel=FALSE)
 {
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
@@ -184,7 +184,7 @@ test_ResistanceSolver3 <- function(dim=5, seed=1, parallel=FALSE)
   list(Rd2, dRd2, emp)
 }
 
-test_ResistanceSolver3NL <- function(dim=5, seed=1, parallel=FALSE)
+.test_ResistanceSolver3NL <- function(dim=5, seed=1, parallel=FALSE)
 {
   set.seed(seed)
   rr <- raster::raster(nrows=dim, ncols=dim, 
@@ -203,7 +203,7 @@ test_ResistanceSolver3NL <- function(dim=5, seed=1, parallel=FALSE)
   list(Rd2, dRd2, emp)
 }
 
-test_RandomField <- function(seed=1, miss=FALSE)
+.test_RandomField <- function(seed=1, miss=FALSE)
 {
   set.seed(seed)
 
@@ -264,7 +264,7 @@ test_RandomField <- function(seed=1, miss=FALSE)
   list(numderiv=out, inlassle=other)
 }
 
-test_RandomField2 <- function(seed=1, loci=5, pop=3, miss=FALSE, parallel=FALSE)
+.test_RandomField2 <- function(seed=1, loci=5, pop=3, miss=FALSE, parallel=FALSE)
 {
   set.seed(seed)
 
@@ -297,7 +297,7 @@ test_RandomField2 <- function(seed=1, loci=5, pop=3, miss=FALSE, parallel=FALSE)
   return(list(init_field=other, fit=fit))
 }
 
-test_RandomField3 <- function(miss=FALSE, parallel=FALSE)
+.test_RandomField3 <- function(miss=FALSE, parallel=FALSE)
 {
   set.seed(1)
 
@@ -348,7 +348,7 @@ test_RandomField3 <- function(miss=FALSE, parallel=FALSE)
 }
 
 ## test set
-get_test_set <- function(seed=1, loci=100, pop=10)
+.get_test_set <- function(seed=1, loci=100, pop=10)
 {
   set.seed(seed)
   coord <- cbind(runif(pop),runif(pop))
@@ -374,332 +374,10 @@ get_test_set <- function(seed=1, loci=100, pop=10)
 
 }
 
-### covariance model on 101x101 grid
-#coordinates start at 0
-#deme grid is thus (17 33 50 67 83) - 1
-setup_splatche <- function(Y, N, spd, k, parallel=FALSE)
-{
-  rr <- raster::raster(matrix(spd[,1], 101, 101),
-                       xmn=0, xmx=100, ymn=0, ymx=100)
-  coords <- expand.grid(Y=c(17,33,50,67,83),X=c(17,33,50,67,83))
-  coords <- coords[,2:1] #b/c/ splatche does Lat then Lon
-  plot(rr)
-  points(coords)
+## rudimentary API
+## TODO: clean, add documentation, proper tests
 
-  targ <- cellFromXY(rr, coords[,1:2]) - 1
-
-  adj <- raster::adjacent(rr, 1:(101*101))-1
-
-  res <- ResistanceSolver$new(spd, targ, adj, parallel)
-  list(Y=Y, N=N, targ=targ, adj=adj, spd=spd, res=res, k=k,parallel=parallel)
-}
-
-sim_splatche <- function(par, spd)
-{
-  rr <- raster::raster(matrix(spd[,1], 101, 101),
-                       xmn=0, xmx=100, ymn=0, ymx=100)
-  coords <- expand.grid(Y=c(17,33,50,67,83),X=c(17,33,50,67,83))
-  coords <- coords[,2:1] #b/c/ splatche does Lat then Lon
-
-  targ <- cellFromXY(rr, coords[,1:2]) - 1
-
-  adj <- raster::adjacent(rr, 1:(101*101))-1
-
-  res <- ResistanceSolver$new(spd, targ, adj, parallel)
-  cv <- res$resistance_covariance_log(par)
-  cv <- solve(cv + 1.0 + diag(rep(1.0,25)))
-  
-  list(Y=Y, N=N, targ=targ, adj=adj, spd=spd, res=res, k=k,parallel=parallel)
-}
-
-obj_splatche <- function(spat, pars)
-{
-  #assume that spd includes intercept!
-  X <- cbind(spat$spd[spat$targ+1,spat$k,drop=F])
-  Z <- cbind(spat$spd[spat$targ+1,spat$k,drop=F])
-
-  nrp <- ncol(spat$spd)
-  nvp <- choose(ncol(X), 2) + ncol(X) 
-  nsp <- ncol(Z)
-  nbp <- ncol(X)
-
-  r <- pars[1:nrp]
-  v <- pars[(nrp+1):(nrp+nvp)]
-  s <- pars[(nrp+nvp+1):(nrp+nvp+nsp)]
-  b <- pars[(nrp+nvp+nsp+1):(nrp+nvp+nsp+nbp)]
-
-  Rd <- array(spat$res$resistance_covariance_log(r),dim=c(nrow(spat$Y),nrow(spat$Y),1))
-  LL <- inlassle_test_Likelihood_cov(spat$N, spat$Y, X, Z, Rd, v, s, b, spat$parallel)
-
-  rd <- spat$res$rd_resistance_covariance_log(LL$gradient_distance[,,1])
-  der <- c(rd, LL$gradient)
-  list(ll=LL$loglik, gr=der, pr=LL$Q)
-}
-
-fit_splatche <- function(Y, N, spd, start, k, method="BFGS", parallel=FALSE)
-{
-  stp <- setup_splatche(Y, N, spd, k, parallel)
-  obj <- function(par) {print(par);fit<-obj_splatche(stp, par);..grad <<- fit$gr; return(fit$ll)}
-  grd <- function(par) {return(..grad)}
-  optim(start, obj, gr=grd, method=method)
-}
-
-#make_gf <- function(dim, seed, type=0)
-#{
-#  #0 = equal
-#  #1 = random
-#  #2 = barrier
-#  set.seed(seed)
-#  rr <- raster::raster(nrows=dim, ncols=dim, 
-#                       xmn=0, xmx=1, ymn=0, ymx=1)
-#  targ <- c(0, floor(dim*dim/2)-1, dim*dim-2)
-#  adj <- raster::adjacent(rr, 1:(dim*dim))-1
-#  adj <- t(apply(adj,1,sort))
-#  adj <- adj[!duplicated(adj),]
-#  if(type==0)
-#  {
-#    cond <- rep(1,dim*dim)
-#  } else if(type==1)
-#  {
-#    cond <- exp(rnorm(dim*dim,0,0.5))
-#  }
-#  else if(type==2)
-#  {
-#    condmat <- matrix(1, dim, dim)
-#    for(i in 1:ncol(condmat))
-#      if (i %in% (floor(dim/2)):(ceiling(dim/2)+1))
-#        condmat[,i] <- 1/10#sample(c(1,1/10),dim,prob=c(0.1,0.9),replace=T)
-#    condmat[6,] <- 1
-#    cond <- c(condmat)
-#  }
-#  condmat <- matrix(cond,dim,dim)
-#  L <- matrix(0,dim*dim,dim*dim)
-#  for(i in 1:nrow(adj)) L[adj[i,1]+1,adj[i,2]+1] <- -0.5*cond[adj[i,1]+1] - 0.5*cond[adj[i,2]+1]
-#  L <- L + t(L)
-#  AA <- -L
-#  DD <- -rowSums(L)
-#  diag(L) <- -rowSums(L)
-#  Linv <- MASS::ginv(L)
-#  Linv2 <- Linv %*% t(Linv)
-#  L2 <- diag(nrow(L)) - diag(1/DD)%*%AA
-#  L2inv <- MASS::ginv(L2)
-#  L2inv2 <- L2inv %*% t(L2inv)
-#  library(ggplot2)
-#  library(reshape2)
-#  cnt = 1
-#  out <- c()
-#  out2 <- c()
-#  for(i in 1:dim)
-#  for(j in 1:dim)
-#  {
-#    posx = ((i-1)*dim + 1):((i-1)*dim + dim)
-#    posy = ((j-1)*dim + 1):((j-1)*dim + dim)
-#    pntx = ((i-1)*dim + i)
-#    pnty = ((j-1)*dim + j)
-#    out2 <- rbind(out2, cbind(pnty, pntx))
-#    out <- rbind(out, cbind(expand.grid(y=posy, x=posx), v=L2inv2[cnt,]))
-#    cnt = cnt + 1
-#  }
-#  rmat <- matrix(rep(1:dim,dim),dim,dim)
-#  cmat <- matrix(rep(1:dim,each=dim),dim,dim)
-#  Adj <- diag(diag(L)) - L
-#  Adj <- melt(Adj)
-#  Adj <- Adj[Adj$value != 0.0,]
-#  Adj$rowstart <- rmat[Adj$Var1]
-#  Adj$rowend <- rmat[Adj$Var2]
-#  Adj$colstart <- cmat[Adj$Var1]
-#  Adj$colend <- cmat[Adj$Var2]
-#  Adj2 <- Adj
-#  # if row1 > row2
-#  Adj2$rowstart = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart < Adj$rowend), Adj$rowstart + 0.3, Adj2$rowstart)
-#  Adj2$rowstart = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart > Adj$rowend), Adj$rowstart - 0.3, Adj2$rowstart)
-#  Adj2$rowend = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart < Adj$rowend), Adj$rowend - 0.3, Adj2$rowend)
-#  Adj2$rowend = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart > Adj$rowend), Adj$rowend + 0.3, Adj2$rowend)
-#  Adj2$colstart = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart < Adj$rowend), Adj$colstart - 0.1, Adj2$colstart)
-#  Adj2$colstart = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart > Adj$rowend), Adj$colend + 0.1, Adj2$colstart)
-#  Adj2$colend = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart < Adj$rowend), Adj$colstart - 0.1, Adj2$colend)
-#  Adj2$colend = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart > Adj$rowend), Adj$colend + 0.1, Adj2$colend)
-##
-#  Adj2$colstart = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart < Adj$colend), Adj$colstart + 0.3, Adj2$colstart)
-#  Adj2$colstart = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart > Adj$colend), Adj$colstart - 0.3, Adj2$colstart)
-#  Adj2$colend = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart < Adj$colend), Adj$colend - 0.3, Adj2$colend)
-#  Adj2$colend = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart > Adj$colend), Adj$colend + 0.3, Adj2$colend)
-#  Adj2$rowstart = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart < Adj$colend), Adj$rowstart - 0.1, Adj2$rowstart)
-# Adj2$rowstart = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart > Adj$colend), Adj$rowend + 0.1, Adj2$rowstart)
-#Adj2$rowend = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart < Adj$colend), Adj$rowstart - 0.1, Adj2$rowend)
-#Adj2$rowend = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart > Adj$colend), Adj$rowend + 0.1, Adj2$rowend)
-#  p1 <- ggplot(melt(condmat), aes(y=Var1, x=Var2)) + geom_tile(aes(fill=value), color="black") + 
-#    scale_x_continuous(expand=c(0,0), breaks=seq(0.5,dim*dim,dim)) + 
-#    scale_y_continuous(expand=c(0,0), breaks=seq(0.5,dim*dim,dim)) +
-#    geom_segment(data=Adj2, aes(x=colstart, xend=colend, y=rowstart, yend=rowend, size=exp(2*value)), arrow=arrow(length=unit(0.016,"npc"))) +
-#    scale_size(range=c(0.2,1)) + 
-#    xlab("X Coordinate") + ylab("Y Coordinate") +
-#    #theme(axis.title=element_blank()) +
-#    theme(legend.position="none", axis.text=element_blank())
-#  if(type>0)
-#    p1 = p1 + scale_fill_gradient(low="gray50", high="white")
-#  else 
-#    p1 = p1 + scale_fill_gradient(low="white", high="white")
-#  p2 <- ggplot(melt(Linv2), aes(y=Var1, x=Var2, fill=value)) + geom_tile() + 
-#    scale_x_continuous(expand=c(0,0)) + scale_y_continuous(expand=c(0,0)) +
-#    scale_fill_gradient2(low="red", mid="white", high="blue", midpoint=0)
-#  p3 <- ggplot(out, aes(y=y, x=x)) + geom_tile(aes(fill=v)) + 
-#    scale_x_continuous(expand=c(0,0), breaks=seq(0.5,dim*dim,dim)) + 
-#    scale_y_continuous(expand=c(0,0), breaks=seq(0.5,dim*dim,dim)) +
-#    geom_hline(yintercept=seq(0.5,dim*dim+0.5,dim)) +
-#    geom_vline(xintercept=seq(0.5,dim*dim+0.5,dim)) +
-#    scale_fill_gradient2(low="red", mid="white", high="blue", midpoint=0) + 
-#    xlab("X Coordinate") + ylab("Y Coordinate") +
-#    #theme(axis.title=element_blank()) +
-#    theme(legend.position="none", axis.text=element_blank())
-#  list(p1,p2,p3)
-#  # what I want to do: take row 1, 1:100 and make these 1:10,1:10
-#}
-#make_gf(8,1,2)
-#
-#make_gf_aniso <- function(dim, seed, aniso=c(0.1,0.2,1.2,1.2))
-#{
-#  #0 = equal
-#  #1 = random
-#  #2 = barrier
-#  set.seed(seed)
-#  rr <- raster::raster(nrows=dim, ncols=dim, 
-#                       xmn=0, xmx=1, ymn=0, ymx=1)
-#  targ <- c(0, floor(dim*dim/2)-1, dim*dim-2)
-#  adj <- raster::adjacent(rr, 1:(dim*dim))-1
-#  adj <- t(apply(adj,1,sort))
-#  adj <- adj[!duplicated(adj),]
-#  rmat <- matrix(rep(1:dim,dim),dim,dim)
-#  cmat <- matrix(rep(1:dim,each=dim),dim,dim)
-#  L <- matrix(0,dim*dim,dim*dim)
-#  for(i in 1:nrow(adj)) 
-#    {
-#      a1 = adj[i,1]+1
-#      a2 = adj[i,2]+1
-#      if(rmat[a1] == rmat[a2]) #same row
-#      {#greater col
-#        if(cmat[a1] > cmat[a2])
-#        {
-#          L[a1,a2] <- -aniso[1]
-#          L[a2,a1] <- -aniso[2]
-#        }
-#        else
-#        {
-#          L[a1,a2] <- -aniso[2]
-#          L[a2,a1] <- -aniso[1]
-#        }
-#      }
-#      else
-#      {#same col
-#        if(rmat[a1] > rmat[a2])#greater row
-#        {
-#          L[a1,a2] <- -aniso[3]
-#          L[a2,a1] <- -aniso[4]
-#        }
-#        else
-#        {
-#          L[a1,a2] <- -aniso[4]
-#          L[a2,a1] <- -aniso[3]
-#        }
-#      }
-#    }
-#  #L <- L + t(L)
-#  AA <- -L
-#  DD <- -rowSums(L)
-#  diag(L) <- -rowSums(L)
-#  Linv <- MASS::ginv(L)
-#  Linv2 <- Linv %*% t(Linv)
-#  L2 <- diag(nrow(L)) - diag(1/DD)%*%AA
-#  L2inv <- MASS::ginv(L2)
-#  L2inv2 <- L2inv %*% t(L2inv)
-#  library(ggplot2)
-#  library(reshape2)
-#  cnt = 1
-#  out <- c()
-#  out2 <- c()
-#  for(i in 1:dim)
-#  for(j in 1:dim)
-#  {
-#    posx = ((i-1)*dim + 1):((i-1)*dim + dim)
-#    posy = ((j-1)*dim + 1):((j-1)*dim + dim)
-#    pntx = ((i-1)*dim + i)
-#    pnty = ((j-1)*dim + j)
-#    out2 <- rbind(out2, cbind(pnty, pntx))
-##    out <- rbind(out, cbind(expand.grid(y=posy, x=posx), v=Linv2[cnt,]))
-#    out <- rbind(out, cbind(expand.grid(y=posy, x=posx), v=L2inv2[cnt,]))
-#    cnt = cnt + 1
-#  }
-#  Adj <- diag(diag(L)) - L
-#  Adj <- melt(Adj)
-#  Adj <- Adj[Adj$value != 0.0,]
-#  Adj$rowstart <- rmat[Adj$Var1]
-#  Adj$rowend <- rmat[Adj$Var2]
-#  Adj$colstart <- cmat[Adj$Var1]
-#  Adj$colend <- cmat[Adj$Var2]
-#  Adj2 <- Adj
-#  # if row1 > row2
-#  Adj2$rowstart = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart < Adj$rowend), Adj$rowstart + 0.3, Adj2$rowstart)
-#  Adj2$rowstart = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart > Adj$rowend), Adj$rowstart - 0.3, Adj2$rowstart)
-#  Adj2$rowend = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart < Adj$rowend), Adj$rowend - 0.3, Adj2$rowend)
-#  Adj2$rowend = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart > Adj$rowend), Adj$rowend + 0.3, Adj2$rowend)
-#  Adj2$colstart = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart < Adj$rowend), Adj$colstart - 0.1, Adj2$colstart)
-#  Adj2$colstart = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart > Adj$rowend), Adj$colend + 0.1, Adj2$colstart)
-#  Adj2$colend = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart < Adj$rowend), Adj$colstart - 0.1, Adj2$colend)
-#  Adj2$colend = ifelse( (Adj$colstart == Adj$colend) & (Adj$rowstart > Adj$rowend), Adj$colend + 0.1, Adj2$colend)
-##
-#  Adj2$colstart = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart < Adj$colend), Adj$colstart + 0.3, Adj2$colstart)
-#  Adj2$colstart = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart > Adj$colend), Adj$colstart - 0.3, Adj2$colstart)
-#  Adj2$colend = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart < Adj$colend), Adj$colend - 0.3, Adj2$colend)
-#  Adj2$colend = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart > Adj$colend), Adj$colend + 0.3, Adj2$colend)
-#  Adj2$rowstart = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart < Adj$colend), Adj$rowstart - 0.1, Adj2$rowstart)
-# Adj2$rowstart = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart > Adj$colend), Adj$rowend + 0.1, Adj2$rowstart)
-#Adj2$rowend = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart < Adj$colend), Adj$rowstart - 0.1, Adj2$rowend)
-#Adj2$rowend = ifelse( (Adj$rowstart == Adj$rowend) & (Adj$colstart > Adj$colend), Adj$rowend + 0.1, Adj2$rowend)
-##
-##what about barrier effects, say we trim
-#  condmat <- matrix(0,dim,dim)
-#  p1 <- ggplot(melt(condmat), aes(y=Var1, x=Var2)) + geom_tile(color="black", fill="white") + 
-#    scale_x_continuous(expand=c(0,0), breaks=seq(0.5,dim*dim,dim)) + 
-#    scale_y_continuous(expand=c(0,0), breaks=seq(0.5,dim*dim,dim)) +
-#    geom_segment(data=Adj2, aes(x=colstart, xend=colend, y=rowstart, yend=rowend, size=exp(value)), arrow=arrow(length=unit(0.016,"npc"))) +
-#    scale_size(range=c(0.2,1.0)) + 
-#    scale_fill_gradient(low="gray50", high="white") +
-#    xlab("X Coordinate") + ylab("Y Coordinate") +
-#    #theme(axis.title=element_blank()) +
-#    theme(legend.position="none", axis.text=element_blank())
-#  p2 <- ggplot(melt(Linv2), aes(y=Var1, x=Var2, fill=value)) + geom_tile() + 
-#    scale_x_continuous(expand=c(0,0)) + scale_y_continuous(expand=c(0,0)) +
-#    scale_fill_gradient2(low="red", mid="white", high="blue", midpoint=0)
-#  p3 <- ggplot(out, aes(y=y, x=x)) + geom_tile(aes(fill=v)) + 
-#    scale_x_continuous(expand=c(0,0), breaks=seq(0.5,dim*dim,dim)) + 
-#    scale_y_continuous(expand=c(0,0), breaks=seq(0.5,dim*dim,dim)) +
-#    geom_hline(yintercept=seq(0.5,dim*dim+0.5,dim)) +
-#    geom_vline(xintercept=seq(0.5,dim*dim+0.5,dim)) +
-#    scale_fill_gradient2(low="red", mid="white", high="blue", midpoint=0) + 
-#    xlab("X Coordinate") + ylab("Y Coordinate") +
-#    #theme(axis.title=element_blank()) +
-#    theme(legend.position="none", axis.text=element_blank())
-#    #geom_point(data=data.frame(out2),aes(x=pntx,y=pnty),pch=3, size=1)
-#  list(p1,p2,p3)
-#  # what I want to do: take row 1, 1:100 and make these 1:10,1:10
-#}
-#make_gf_aniso(8,1,c(0.6,1.2,0.6,0.9))
-#make_gf_aniso(11,1,c(1,1,1,1))
-#
-#p11 <- make_gf(9,1,0)[[1]]
-#p21 <- make_gf(9,1,0)[[3]]
-#p12 <- make_gf(9,1,2)[[1]]
-#p22 <- make_gf(9,1,2)[[3]]
-#p13 <- make_gf_aniso(9,1,c(0.6,1.2,0.6,0.9))[[1]]
-#p23 <- make_gf_aniso(9,1,c(0.6,1.2,0.6,0.9))[[3]]
-#library(gridExtra)
-#library(extrafont)
-#pdf("Ch5figS1.pdf", height=7, width=4.81, family="CM Roman")
-#grid.arrange(arrangeGrob(p11, top="Graph",left="IBD"), arrangeGrob(p21, top="Covariance/Vertex"), arrangeGrob(p12,left="Barrier"), p22, arrangeGrob(p13,left="Anisotropic"), p23, ncol=2)
-#dev.off()
-#embed_fonts("Ch5figS1.pdf")
-
-make_linear_system <- function(covariates, coords, directions=4, saveStack=TRUE)
+ResistanceSurface <- function(covariates, coords, directions=4, saveStack=TRUE)
 {
   if (class(covariates) != "RasterStack")
     stop("Covariate input must be class 'RasterStack'")
@@ -865,9 +543,87 @@ inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linea
        "Converged"=converged)
 }
 
+inlassleBinomialGrid <- function(snp, chrom, linear_system, grid, maxit=100, parallel=TRUE)
+{
+  # calculate profile likelihood across a parameter grid
+
+  if (class(snp) != "matrix" | class(chrom) != "matrix" | class(linear_system) != "inlassle_linear_system")
+    stop("Inputs are of invalid type")
+  if (ncol(snp) < nrow(snp))
+    stop("Fewer SNPs than demes")
+  if (!(all(dim(snp)==dim(chrom))))
+    stop("Dimension mismatch in SNP inputs")
+  if (ncol(grid) != length(linear_system$covariates))
+    stop("Wrong number of parameters in grid")
+  if (nrow(snp) != length(linear_system$coords2demes))
+    stop("Number of demes does not match size of linear system")
+  if (any(snp > chrom))
+    stop("SNP count cannot exceed number of sampled chromosomes")
+  if (any(snp < 0 | chrom < 0))
+    stop("SNP/chromosome counts cannot be negative")
+
+  #aggregate SNP matrix by coord2deme
+  snp2 <- matrix(0, length(linear_system$demes), ncol(snp))
+  chrom2 <- matrix(0, length(linear_system$demes), ncol(snp))
+  for(i in 1:nrow(snp))
+  {
+    snp2[linear_system$coords2demes[i],] <- snp2[linear_system$coords2demes[i],] + snp[i,]
+    chrom2[linear_system$coords2demes[i],] <- chrom2[linear_system$coords2demes[i],] + chrom[i,]
+  }
+  snp <- snp2
+  chrom <- chrom2
+
+  ...grad   <<- NA
+  ...rgrad <<- NA
+  n <- nrow(snp)
+  indr <- 1:length(linear_system$covariates)
+  indn <- (max(indr)+1):(max(indr)+3)
+  obj <- function(par, rcov)
+  {
+    ll   <- inlassle:::inlassle_test_Likelihood_cov(chrom, snp, matrix(1,n,1), matrix(1,n,1), rcov, par[indn][1], par[indn][2], par[indn][3], FALSE)#TODO: if Field::linesearch throws warnings and parallel=TRUE this can really f*** up the stack
+    ...grad <<- c(ll$gradient) #save gradient for later use
+    ...rgrad <<- linear_system$solver$rd_resistance_covariance_log(ll$gradient_distance[,,1]) #save gradient with regard to resistance pars
+    return (ll$loglik)
+  }
+  gra <- function(par, rcov)
+  {
+    if (any(is.na(...grad))) #if objective has not been called, call it
+      obj(par)
+    grad <- ...grad
+    ...grad <<- NA
+    return (grad)
+  }
+
+  llout <- rep(NA, nrow(grid))
+  grout <- matrix(NA, nrow(grid), ncol(grid))
+  rdout <- array(NA, dim=c(n,n,nrow(grid)))
+  cvout <- rep(NA, nrow(grid))
+  for (i in 1:nrow(grid))
+  {
+    rcov <- array(linear_system$solver$resistance_covariance_log(grid[i,]), c(n,n,1))
+    fit  <- optim(start, fn=obj, gr=gra, rcov=rcov, method="BFGS", control=list(maxit=maxit))
+
+    converged <- fit$convergence == 0
+    if (!converged)
+      warning("Optimizer did not converge")
+
+    cvout[i] <- converged
+    llout[i] <- -fit$value
+    grout[i,] <- -...rgrad
+    rdout[,,i] <- rcov
+  }
+
+  list("Parameters"=grid, "Convergence"=cvout, "Loglik"=llout, "Gradient"=grout, "ResistanceCovariance"=rdout)
+}
+
 inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$covariates)), maxit = 100)
 {
-  browser()
+  if (class(gdist) != "matrix" | class(linear_system) != "inlassle_linear_system")
+    stop("Inputs are of invalid type")
+  if (length(start) != length(linear_system$covariates))
+    stop("Wrong number of parameters in start")
+  if (nrow(gdist) != length(linear_system$coords2demes))
+    stop("Number of demes does not match size of linear system (perhaps some demes are in same raster cell?)")
 
   pairs <- which(lower.tri(gdist), arr.ind=TRUE)
   dis   <- gdist[lower.tri(gdist)]
@@ -954,9 +710,90 @@ inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$
        "Converged"=converged)
 }
 
+inlassleMLPEGrid <- function(gdist, linear_system, grid, maxit = 100)
+{
+  if (class(gdist) != "matrix" | class(linear_system) != "inlassle_linear_system")
+    stop("Inputs are of invalid type")
+  if (ncol(grid) != length(linear_system$covariates))
+    stop("Wrong number of parameters in grid")
+  if (nrow(gdist) != length(linear_system$coords2demes))
+    stop("Number of demes does not match size of linear system (perhaps some demes are in same raster cell?)")
+
+  pairs <- which(lower.tri(gdist), arr.ind=TRUE)
+  dis   <- gdist[lower.tri(gdist)]
+
+  jacc_prod <- function(dz, z, s) #jacobian product, mapping gradient of scaled to gradient of unscaled
+    1/s * (dz - z/(length(z)-1) * c(crossprod(z, dz)) - mean(dz))
+
+  ...grad  <<- NA
+  ...model <<- NA
+  obj <- function(par, rdis)
+  {
+    dat  <- data.frame(y = gdist[lower.tri(gdist)], x = rdis, pop1 = pairs[,1], pop2 = pairs[,2])
+    fit  <- nlme::gls(y ~ x, correlation = corMLPE(form=~pop1 + pop2), data = dat, method = "ML")
+
+    # gradient calculation
+    conLin <- list("Xy" = cbind(resid(fit, "response")), "logLik" = NA)
+    conLin <- corMLPE:::recalc.corMLPE(fit$modelStruct$corStruct, conLin) #multiply by inverse sqrt once ...
+    conLin <- corMLPE:::recalc.corMLPE(fit$modelStruct$corStruct, conLin) #... and twice
+    grad   <- c(coef(fit)[2] * conLin[[1]] / sigma(fit)^2) #gradient wrt scaled RD
+    grad   <- jacc_prod (grad, rdis, rsd) #gradient wrt unscaled RD
+
+    tmp    <- matrix(0, nrow(gdist), ncol(gdist))
+    tmp[lower.tri(tmp)] <- grad
+    tmp    <- tmp + t(tmp)
+
+    ...grad  <<- -linear_system$solver$rd_resistance_distance_log(grad)
+    ...model <<- fit
+
+    return -logLik(fit)
+  }
+  gra <- function(par, rdis)
+  {
+    if (is.na(...grad)) #if objective has not been called, call it
+      obj(par)
+    grad <- ...grad
+    ...grad <<- NA
+    return (grad)
+  }
+
+  llout <- rep(NA, nrow(grid))
+  grout <- matrix(NA, nrow(grid), ncol(grid))
+  rdout <- array(NA, dim=c(n,n,nrow(grid)))
+  cvout <- rep(NA, nrow(grid))
+  for(i in 1:nrow(grid))
+  {
+    rdis <- tmp <- linear_system$solver$resistance_distance_log(grid[i,])
+    rdis <- rdis[lower.tri(rdis)]
+    rsd  <- sd(rdis)
+    rdis <- (rdis - mean(rdis)) / rsd
+    fit <- optim(start, fn=obj, gr=gra, rdis=rdis, method="BFGS", control=list(maxit=maxit))
+    converged <- fit$converged == 0
+    if (!converged)
+      warning("Optimizer did not converge")
+    cvout[i] <- converged
+    llout[i] <- -fit$value
+    grout[i,] <- -...rgrad
+
+    tmp <- tmp*0
+    tmp[lower.tri(tmp)] <- rdis
+    tmp <- tmp + t(tmp)
+    rdout[,,i] <- tmp
+  }
+
+  list("Parameters"=grid, "Convergence"=cvout, "Loglik"=llout, "Gradient"=grout, "ResistanceDistance"=rdout)
+}
+
 #TODO:
 #inlassleWishart <- function(gdist, nsnp, linear_system)
 #{
 #  ...grad <- NA
 #  obj <- function(par)
 #}
+
+#gradient for wishart with nu fixed
+# L(V) = -0.5 tr(inv(V) X) - 0.5 nu logdet(V)
+# L'(V) = 0.5 inv(V) X inv(V) - 0.5 nu inv(V)
+
+#gradient for projected wishart with nu fixed
+# L(V) = -0.5 tr(inv(V) 

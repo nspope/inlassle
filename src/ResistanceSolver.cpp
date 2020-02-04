@@ -353,6 +353,7 @@ VectorXd ResistanceSolver::rd_resistance_distances (MatrixXd D)
   D /= 2.;
 
   //DON'T RESCALE
+  MatrixXd D1 = D;
   //// d = abs(det(R))^(-1/n), thus
   ////   d(d)/dR = -1/n * abs(det(R))^(-1/n) * solve(R)
   //// if passing back a matrix of sensitivities D for f(d) = A = X * d, then
