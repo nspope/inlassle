@@ -144,48 +144,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// test_Null_C
-arma::mat test_Null_C(arma::cube D, double nu, double delta, arma::vec pars);
-RcppExport SEXP _inlassle_test_Null_C(SEXP DSEXP, SEXP nuSEXP, SEXP deltaSEXP, SEXP parsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type pars(parsSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Null_C(D, nu, delta, pars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Null_dC_dt
-arma::mat test_Null_dC_dt(arma::cube D, double nu, double delta, arma::vec pars);
-RcppExport SEXP _inlassle_test_Null_dC_dt(SEXP DSEXP, SEXP nuSEXP, SEXP deltaSEXP, SEXP parsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type pars(parsSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Null_dC_dt(D, nu, delta, pars));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Null_dC_dD
-arma::cube test_Null_dC_dD(arma::cube D, double nu, double delta, arma::vec pars);
-RcppExport SEXP _inlassle_test_Null_dC_dD(SEXP DSEXP, SEXP nuSEXP, SEXP deltaSEXP, SEXP parsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube >::type D(DSEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type pars(parsSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_Null_dC_dD(D, nu, delta, pars));
-    return rcpp_result_gen;
-END_RCPP
-}
 // test_Parameters
 Rcpp::List test_Parameters(arma::vec t, arma::vec v, arma::vec s, arma::vec b);
 RcppExport SEXP _inlassle_test_Parameters(SEXP tSEXP, SEXP vSEXP, SEXP sSEXP, SEXP bSEXP) {
@@ -615,9 +573,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_inlassle_test_Matern_C", (DL_FUNC) &_inlassle_test_Matern_C, 4},
     {"_inlassle_test_Matern_dC_dt", (DL_FUNC) &_inlassle_test_Matern_dC_dt, 4},
     {"_inlassle_test_Matern_dC_dD", (DL_FUNC) &_inlassle_test_Matern_dC_dD, 4},
-    {"_inlassle_test_Null_C", (DL_FUNC) &_inlassle_test_Null_C, 4},
-    {"_inlassle_test_Null_dC_dt", (DL_FUNC) &_inlassle_test_Null_dC_dt, 4},
-    {"_inlassle_test_Null_dC_dD", (DL_FUNC) &_inlassle_test_Null_dC_dD, 4},
     {"_inlassle_test_Parameters", (DL_FUNC) &_inlassle_test_Parameters, 4},
     {"_inlassle_test_ImproperGamma", (DL_FUNC) &_inlassle_test_ImproperGamma, 1},
     {"_inlassle_test_ImproperWishart", (DL_FUNC) &_inlassle_test_ImproperWishart, 1},

@@ -1,5 +1,5 @@
 Package: inlassle
-Title: Fast Optimization of Resistance Surfaces with SNPs
+Title: Fast Gradient-Based Optimization of Resistance Surfaces
 Version: 0.0.3.1
 Authors@R: person("Nathaniel S.", "Pope", email = "nspope@utexas.edu", role = c("aut", "cre"))
 Description: blah blah
@@ -13,6 +13,5 @@ RcppModules: inlassle
 SystemRequirements: GNU make, C++11
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2018-06-15 18:45:37 UTC; nspope
 Author: Nathaniel S. Pope [aut, cre]
 Maintainer: Nathaniel S. Pope <nspope@utexas.edu>

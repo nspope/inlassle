@@ -37,6 +37,18 @@ inlassle_test_Matern_dC_dD <- function(D, nu, delta, pars) {
     .Call('_inlassle_test_Matern_dC_dD', PACKAGE = 'inlassle', D, nu, delta, pars)
 }
 
+inlassle_test_Null_C <- function(D, nu, delta, pars) {
+    .Call('_inlassle_test_Null_C', PACKAGE = 'inlassle', D, nu, delta, pars)
+}
+
+inlassle_test_Null_dC_dt <- function(D, nu, delta, pars) {
+    .Call('_inlassle_test_Null_dC_dt', PACKAGE = 'inlassle', D, nu, delta, pars)
+}
+
+inlassle_test_Null_dC_dD <- function(D, nu, delta, pars) {
+    .Call('_inlassle_test_Null_dC_dD', PACKAGE = 'inlassle', D, nu, delta, pars)
+}
+
 inlassle_test_Parameters <- function(t, v, s, b) {
     .Call('_inlassle_test_Parameters', PACKAGE = 'inlassle', t, v, s, b)
 }
