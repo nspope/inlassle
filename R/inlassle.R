@@ -377,6 +377,25 @@ Rcpp::loadModule("inlassle", TRUE)
 ## rudimentary API
 ## TODO: clean, add documentation, proper tests
 
+FstFromCounts <- function(Y, N)
+{
+  if (!all(dim(Y)==dim(N)))
+    stop("Dimension mismatch")
+  if (any(Y<0) || any(N<0))
+    stop("Cannot have negative counts")
+  if (any(Y>N))
+    stop("Allele counts cannot exceed number of haploids sampled")
+
+  Fr <- Y/N
+  f2 <- apply(apply(Fr, 2, function(x) outer(x,x,"-")^2), 1, mean, na.rm=TRUE)
+  cornum <- apply(Fr*(1-Fr)/(N-1), 1, mean)
+  corden <- apply(Fr*(1-Fr)*N/(N-1), 1, mean)
+  fst <- (f2 - c(outer(cornum, cornum, "+")))/(f2 - c(outer(cornum, cornum, "+")) + c(outer(corden, corden, "+")))
+  fst <- matrix(fst, nrow(Y), nrow(Y))
+  diag(fst) <- 0
+  fst
+}
+
 ResistanceSurface <- function(covariates, coords, directions=4, saveStack=TRUE)
 {
   if (class(covariates) != "RasterStack")
@@ -464,8 +483,8 @@ simulate_inlassleBinomial <- function(linear_system, rpar, npar, nsnp, nchr, see
 
 inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linear_system$covariates)+3), maxit=100, parallel=TRUE)
 {
-  if (class(snp) != "matrix" | class(chrom) != "matrix" | class(linear_system) != "inlassle_linear_system")
-    stop("Inputs are of invalid type")
+  if (class(snp) != "matrix" || class(chrom) != "matrix" || class(linear_system) != "inlassle_linear_system")
+    stop("Inputs must be: a matrix of allele counts, a matrix of sample sizes, an 'inlassle_linear_system' object")
   if (ncol(snp) < nrow(snp))
     stop("Fewer SNPs than demes")
   if (!(all(dim(snp)==dim(chrom))))
@@ -491,6 +510,7 @@ inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linea
   chrom <- chrom2
 
   ...grad <<- NA
+  N <- ncol(snp)
   n <- nrow(snp)
   indr <- 1:length(linear_system$covariates)
   indn <- (max(indr)+1):(max(indr)+3)
@@ -499,8 +519,8 @@ inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linea
     rcov <- array(linear_system$solver$resistance_covariance_log(par[indr]), c(n,n,1))
     ll   <- inlassle:::inlassle_test_Likelihood_cov(chrom, snp, matrix(1,n,1), matrix(1,n,1), rcov, par[indn][1], par[indn][2], par[indn][3], FALSE)#TODO: if Field::linesearch throws warnings and parallel=TRUE this can really f*** up the stack
     rd   <- linear_system$solver$rd_resistance_covariance_log(ll$gradient_distance[,,1]) #backpropagate
-    ...grad <<- c(rd, ll$gradient) #save gradient for later use
-    return (ll$loglik)
+    ...grad <<- c(rd, ll$gradient) * N #save gradient for later use
+    return (ll$loglik * N) #multiply by N because inlassle returns avg loglik
   }
   gra <- function(par)
   {
@@ -510,7 +530,7 @@ inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linea
     ...grad <<- NA
     return (grad)
   }
-  fit <- optim(start, fn=obj, gr=gra, method="BFGS", hessian=TRUE, control=list(maxit=maxit))
+  fit <- optim(start, fn=obj, gr=gra, method="L-BFGS-B", hessian=TRUE, control=list(maxit=maxit))
 
   converged <- fit$convergence == 0
   if (!converged)
@@ -547,8 +567,8 @@ inlassleBinomialGrid <- function(snp, chrom, linear_system, grid, maxit=100, par
 {
   # calculate profile likelihood across a parameter grid
 
-  if (class(snp) != "matrix" | class(chrom) != "matrix" | class(linear_system) != "inlassle_linear_system")
-    stop("Inputs are of invalid type")
+  if (class(snp) != "matrix" || class(chrom) != "matrix" || class(linear_system) != "inlassle_linear_system")
+    stop("Inputs must be: a matrix of allele counts, a matrix of sample sizes, an 'inlassle_linear_system' object, a matrix of parameter values")
   if (ncol(snp) < nrow(snp))
     stop("Fewer SNPs than demes")
   if (!(all(dim(snp)==dim(chrom))))
@@ -575,15 +595,15 @@ inlassleBinomialGrid <- function(snp, chrom, linear_system, grid, maxit=100, par
 
   ...grad   <<- NA
   ...rgrad <<- NA
+  N <- ncol(snp)
   n <- nrow(snp)
-  indr <- 1:length(linear_system$covariates)
-  indn <- (max(indr)+1):(max(indr)+3)
+  indn <- 1:3
   obj <- function(par, rcov)
   {
     ll   <- inlassle:::inlassle_test_Likelihood_cov(chrom, snp, matrix(1,n,1), matrix(1,n,1), rcov, par[indn][1], par[indn][2], par[indn][3], FALSE)#TODO: if Field::linesearch throws warnings and parallel=TRUE this can really f*** up the stack
-    ...grad <<- c(ll$gradient) #save gradient for later use
-    ...rgrad <<- linear_system$solver$rd_resistance_covariance_log(ll$gradient_distance[,,1]) #save gradient with regard to resistance pars
-    return (ll$loglik)
+    ...grad <<- c(ll$gradient) * N #save gradient for later use
+    ...rgrad <<- linear_system$solver$rd_resistance_covariance_log(ll$gradient_distance[,,1]) * N #save gradient with regard to resistance pars
+    return (ll$loglik * N)
   }
   gra <- function(par, rcov)
   {
@@ -598,6 +618,7 @@ inlassleBinomialGrid <- function(snp, chrom, linear_system, grid, maxit=100, par
   grout <- matrix(NA, nrow(grid), ncol(grid))
   rdout <- array(NA, dim=c(n,n,nrow(grid)))
   cvout <- rep(NA, nrow(grid))
+  start <- rep(0, length(indn))
   for (i in 1:nrow(grid))
   {
     rcov <- array(linear_system$solver$resistance_covariance_log(grid[i,]), c(n,n,1))
@@ -606,6 +627,8 @@ inlassleBinomialGrid <- function(snp, chrom, linear_system, grid, maxit=100, par
     converged <- fit$convergence == 0
     if (!converged)
       warning("Optimizer did not converge")
+    else
+      start <- fit$par
 
     cvout[i] <- converged
     llout[i] <- -fit$value
@@ -618,10 +641,14 @@ inlassleBinomialGrid <- function(snp, chrom, linear_system, grid, maxit=100, par
 
 inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$covariates)), maxit = 100)
 {
-  if (class(gdist) != "matrix" | class(linear_system) != "inlassle_linear_system")
-    stop("Inputs are of invalid type")
+  if (class(gdist) != "matrix" || class(linear_system) != "inlassle_linear_system")
+    stop("Inputs must be: a matrix of genetic distances, an 'inlassle_linear_system' object")
   if (length(start) != length(linear_system$covariates))
     stop("Wrong number of parameters in start")
+  if (nrow(gdist) != ncol(gdist))
+    stop("Genetic distances must be a square matrix")
+  if (any(gdist < 0) || any(diag(gdist)!=0))
+    stop("Genetic distance matrix must be non-negative with zeros on diagonal")
   if (nrow(gdist) != length(linear_system$coords2demes))
     stop("Number of demes does not match size of linear system (perhaps some demes are in same raster cell?)")
 
@@ -651,7 +678,7 @@ inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$
   ...model <<- NA
   obj <- function(par)
   {
-    rdis <- linear_system$solver$resistance_distance_log(par)
+    rdis <- linear_system$solver$resistance_distances_log(par)
     rdis <- rdis[lower.tri(rdis)]
     rsd  <- sd(rdis)
     rdis <- (rdis - mean(rdis)) / rsd
@@ -667,24 +694,24 @@ inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$
 
     tmp    <- matrix(0, nrow(gdist), ncol(gdist))
     tmp[lower.tri(tmp)] <- grad
-    tmp    <- tmp + t(tmp)
+    tmp    <- 0.5 * (tmp + t(tmp))
 
-    ...grad  <<- -linear_system$solver$rd_resistance_distance_log(grad)
+    ...grad  <<- -linear_system$solver$rd_resistance_distances_log(tmp)
     ...model <<- fit
 
-    return -logLik(fit)
+    return(-logLik(fit))
   }
   gra <- function(par)
   {
-    if (is.na(...grad)) #if objective has not been called, call it
+    if (any(is.na(...grad))) #if objective has not been called, call it
       obj(par)
     grad <- ...grad
     ...grad <<- NA
     return (grad)
   }
-  fit <- optim(start, fn=obj, gr=gra, method="BFGS", hessian=TRUE, control=list(maxit=maxit))
+  fit <- optim(start, fn=obj, gr=gra, method="L-BFGS-B", hessian=TRUE, control=list(maxit=maxit))
 
-  converged <- fit$converged == 0
+  converged <- fit$convergence == 0
   if (!converged)
     warning("Optimizer did not converge")
 
@@ -712,8 +739,12 @@ inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$
 
 inlassleMLPEGrid <- function(gdist, linear_system, grid, maxit = 100)
 {
-  if (class(gdist) != "matrix" | class(linear_system) != "inlassle_linear_system")
-    stop("Inputs are of invalid type")
+  if (class(gdist) != "matrix" || class(linear_system) != "inlassle_linear_system" || class(grid) != "matrix")
+    stop("Inputs must be: a matrix of genetic distances, an 'inlassle_linear_system' object, a matrix of parameter values")
+  if (nrow(gdist) != ncol(gdist))
+    stop("Genetic distances must be a square matrix")
+  if (any(gdist < 0) || any(diag(gdist)!=0))
+    stop("Genetic distance matrix must be non-negative with zeros on diagonal")
   if (ncol(grid) != length(linear_system$covariates))
     stop("Wrong number of parameters in grid")
   if (nrow(gdist) != length(linear_system$coords2demes))
@@ -721,6 +752,7 @@ inlassleMLPEGrid <- function(gdist, linear_system, grid, maxit = 100)
 
   pairs <- which(lower.tri(gdist), arr.ind=TRUE)
   dis   <- gdist[lower.tri(gdist)]
+  n     <- nrow(gdist)
 
   jacc_prod <- function(dz, z, s) #jacobian product, mapping gradient of scaled to gradient of unscaled
     1/s * (dz - z/(length(z)-1) * c(crossprod(z, dz)) - mean(dz))
@@ -741,16 +773,16 @@ inlassleMLPEGrid <- function(gdist, linear_system, grid, maxit = 100)
 
     tmp    <- matrix(0, nrow(gdist), ncol(gdist))
     tmp[lower.tri(tmp)] <- grad
-    tmp    <- tmp + t(tmp)
+    tmp    <- 0.5 * (tmp + t(tmp))
 
-    ...grad  <<- -linear_system$solver$rd_resistance_distance_log(grad)
+    ...grad  <<- -linear_system$solver$rd_resistance_distances_log(tmp)
     ...model <<- fit
 
-    return -logLik(fit)
+    return (-logLik(fit))
   }
   gra <- function(par, rdis)
   {
-    if (is.na(...grad)) #if objective has not been called, call it
+    if (any(is.na(...grad))) #if objective has not been called, call it
       obj(par)
     grad <- ...grad
     ...grad <<- NA
@@ -760,22 +792,17 @@ inlassleMLPEGrid <- function(gdist, linear_system, grid, maxit = 100)
   llout <- rep(NA, nrow(grid))
   grout <- matrix(NA, nrow(grid), ncol(grid))
   rdout <- array(NA, dim=c(n,n,nrow(grid)))
-  cvout <- rep(NA, nrow(grid))
+  cvout <- rep(TRUE, nrow(grid))
   for(i in 1:nrow(grid))
   {
-    rdis <- tmp <- linear_system$solver$resistance_distance_log(grid[i,])
+    rdis <- tmp <- linear_system$solver$resistance_distances_log(grid[i,])
     rdis <- rdis[lower.tri(rdis)]
     rsd  <- sd(rdis)
     rdis <- (rdis - mean(rdis)) / rsd
-    fit <- optim(start, fn=obj, gr=gra, rdis=rdis, method="BFGS", control=list(maxit=maxit))
-    converged <- fit$converged == 0
-    if (!converged)
-      warning("Optimizer did not converge")
-    cvout[i] <- converged
-    llout[i] <- -fit$value
-    grout[i,] <- -...rgrad
+    llout[i] <- -obj(grid[i,], rdis)
+    grout[i,] <- -...grad
 
-    tmp <- tmp*0
+    tmp[] <- 0
     tmp[lower.tri(tmp)] <- rdis
     tmp <- tmp + t(tmp)
     rdout[,,i] <- tmp
