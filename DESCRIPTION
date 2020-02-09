@@ -8,7 +8,7 @@ License: MIT
 Encoding: UTF-8
 LazyData: true
 LinkingTo: Rcpp, RcppArmadillo, RcppParallel, BH, RcppEigen
-Imports: Rcpp, RcppArmadillo, RcppParallel, BH, RcppEigen
+Imports: Rcpp, RcppArmadillo, RcppParallel, BH, RcppEigen, raster, corMLPE
 RcppModules: inlassle
 SystemRequirements: GNU make, C++11
 RoxygenNote: 6.0.1
