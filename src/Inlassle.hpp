@@ -2,6 +2,7 @@
 #define INLASSLE_H
 
 #include <RcppArmadillo.h> 
+#include <RcppEigen.h> 
 #include <RcppParallel.h> 
 #include <boost/math/special_functions/polygamma.hpp>
 #include <boost/math/special_functions/gamma.hpp>
