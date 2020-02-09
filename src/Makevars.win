@@ -11,5 +11,6 @@
 CXX_STD = CXX11
 PKG_CXXFLAGS += -Wno-sign-compare -I../inst/include -DDLIB_NO_GUI_SUPPORT
 PKG_CXXFLAGS += -DRCPP_PARALLEL_USE_TBB=1
-PKG_LIBS += -lz -lpcre -lws2_32 -lwinmm -luser32 -lgdi32 -lcomctl32 -limm32
+#PKG_LIBS += -lz -lpcre -lws2_32 -lwinmm -luser32 -lgdi32 -lcomctl32 -limm32
+PKG_LIBS += -lz -lws2_32 -lwinmm -luser32 -lgdi32 -lcomctl32 -limm32
 PKG_LIBS += $(shell ${R_HOME}/bin/Rscript -e "RcppParallel::RcppParallelLibs()")
