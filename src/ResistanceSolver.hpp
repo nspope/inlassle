@@ -1,7 +1,7 @@
 #ifndef RESISTANCESOLVER_H
 #define RESISTANCESOLVER_H
 
-#include "Inlassle.h"
+#include "Inlassle.hpp"
 
 // [[Rcpp::depends(RcppEigen,RcppParallel)]]
 // [[Rcpp::plugins(cpp11)]]
