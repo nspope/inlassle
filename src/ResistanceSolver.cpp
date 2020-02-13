@@ -526,6 +526,12 @@ VectorXd ResistanceSolver::rd_resistance_covariance (MatrixXd D)
   return map3._parameters;
 }
 
+VectorXd ResistanceSolver::getGreensFunction (const unsigned i)
+{
+   double tmp = Linv.col(i).sum() / double(dim);
+   return Linv.col(i) - VectorXd::Ones(dim-1) * tmp;
+}
+
 MatrixXd ResistanceSolver::getAdjacency (void)
 {
   return MatrixXd(adjacency); //at some point can we return sparse matrix?
@@ -708,6 +714,7 @@ RCPP_MODULE(inlassle) {
     .method("rd_resistance_covariance_rlogit", &ResistanceSolver::rd_resistance_covariance_rlogit)
     .method("rd_resistance_covariance_softplus", &ResistanceSolver::rd_resistance_covariance_softplus)
     .method("rd_resistance_covariance_identity", &ResistanceSolver::rd_resistance_covariance_identity)
+    .method("getGreensFunction", &ResistanceSolver::getGreensFunction)
     .method("getAdjacency", &ResistanceSolver::getAdjacency)
     .method("getLaplacianDiagonal", &ResistanceSolver::getLaplacianDiagonal)
     .method("getConductance", &ResistanceSolver::getConductance)

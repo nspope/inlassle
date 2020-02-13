@@ -377,6 +377,7 @@ Rcpp::loadModule("inlassle", TRUE)
 ## rudimentary API
 ## TODO: clean, add documentation, proper tests
 
+## TODO: handle missing data in FstFromCounts
 FstFromCounts <- function(Y, N)
 {
   if (!all(dim(Y)==dim(N)))
@@ -388,8 +389,8 @@ FstFromCounts <- function(Y, N)
 
   Fr <- Y/N
   f2 <- apply(apply(Fr, 2, function(x) outer(x,x,"-")^2), 1, mean, na.rm=TRUE)
-  cornum <- apply(Fr*(1-Fr)/(N-1), 1, mean)
-  corden <- apply(Fr*(1-Fr)*N/(N-1), 1, mean)
+  cornum <- apply(Fr*(1-Fr)/(N-1), 1, mean, na.rm=TRUE)
+  corden <- apply(Fr*(1-Fr)*N/(N-1), 1, mean, na.rm=TRUE)
   fst <- (f2 - c(outer(cornum, cornum, "+")))/(f2 - c(outer(cornum, cornum, "+")) + c(outer(corden, corden, "+")))
   fst <- matrix(fst, nrow(Y), nrow(Y))
   diag(fst) <- 0
@@ -415,15 +416,17 @@ ResistanceSurface <- function(covariates, coords, directions=4, saveStack=TRUE)
 
     #remove secondary clumps
     connected_component <- names(which.max(table(raster::getValues(cr))))
-    bad <- raster::getValues(cr) != connected_component
+    bad <- raster::getValues(cr) != as.integer(connected_component)
     spdat[bad,] <- NA
     raster::values(covariates[[i]]) <- spdat[,i]
   }
 
   # final check that graph is connected after pruning
   cr <- raster::clump(covariates[[1]], directions = directions)
-  if (length(unique(raster::getValues(cr))) > 1)
+  if (length(na.omit(unique(raster::getValues(cr)))) > 1)
     stop("Pruning failed, disconnected components remain")
+  if (length(na.omit(unique(raster::getValues(cr)))) == 0)
+    stop("Pruning failed, no non-missing cells remain")
 
   # extract raster "data"
   cat("Extracting adjacency list ...\n")
@@ -445,7 +448,7 @@ ResistanceSurface <- function(covariates, coords, directions=4, saveStack=TRUE)
   uniq_cells_map <- match(cells, uniq_cells)
 
   # check that cells lie on connected portion of raster
-  if(any(is.na(getValues(cr)[uniq_cells])))
+  if(any(is.na(getValues(cr)[unmapped_cells])))
     stop("At least one deme is located on a missing cell")
 
   out <- list("solver"       = ResistanceSolver$new(spdat, uniq_cells, adj, TRUE),
@@ -823,4 +826,32 @@ inlassleMLPEGrid <- function(gdist, linear_system, grid, maxit = 100)
 # L'(V) = 0.5 inv(V) X inv(V) - 0.5 nu inv(V)
 
 #gradient for projected wishart with nu fixed
-# L(V) = -0.5 tr(inv(V) 
+# L(V) = d/2 logdet(inv(V) Q) + d/4 tr(inv(V) Q D)
+# Q = I - X inv(X' inv(V) X) X' inv(V)
+# X is design matrix for mean ... if X = 1 then
+# Q = I - 1/sum(inv(V)) X colsums(inv(V))
+
+# if U are gradiants of f(a W 1 1' W)
+# c(U) %*% (kronecker(rowSums(W) %*% t(rep(1,3)), diag(3)) + kronecker(diag(3),rowSums(W) %*% t(rep(1,3)))) * a
+# ==>
+# M = rowSums(W) %*% t(rep(1,3))
+# U %*% M + t(M) %*% U
+# ==>
+# dL - a dL W 1 1' - a 1 1' W dL ... this is part holding a = 1/sum(W) fixed
+# sum(dL * (a^2 W 1 1' W)) ... this is part holding W fixed (it is dxd matrix)
+# ==>
+# dW = dL - a dL W 1 1' - a 1 1' W dL + sum(dL * (a^2 W 1 1' W))
+# but note that dL in above is the gradient of matrix wrt pseudo-determinant ... how to get this?
+# conjecture: logDet(WQ) is always 1 .. .seems to be true. So only need to worry aobut grad of trace
+
+### workspace
+#cc = sum(U * (1/sum(W)^2 * W %*% matrix(1,3,1) %*% matrix(1,1,3) %*% W))
+#bb = 1/sum(W) * U %*% W %*% matrix(1,3,1) %*% matrix(1,1,3) + 
+#     1/sum(W) * matrix(1,3,1) %*% matrix(1,1,3) %*% W
+# U - bb + cc
+###
+
+
+# fn <- function(V) log(det(solve(V) %*% (diag(nrow(V)) - 1/sum(solve(V)) * matrix(1,3,1) %*% matrix(1,1,3) %*% solve(V))))
+
+

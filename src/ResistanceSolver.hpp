@@ -152,6 +152,7 @@ struct ResistanceSolver
   template <class LinkFn> VectorXd rd_resistance_distances (MatrixXd);
   template <class LinkFn> MatrixXd resistance_covariance (const VectorXd);
   template <class LinkFn> VectorXd rd_resistance_covariance (MatrixXd);
+  VectorXd getGreensFunction (const unsigned);
   MatrixXd getAdjacency (void);
   VectorXd getLaplacianDiagonal (void);
   VectorXd getConductance (void);
