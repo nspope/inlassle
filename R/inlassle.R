@@ -542,10 +542,11 @@ inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linea
   hess <- fit$hessian
 
   # fitted values for resistance parameters
-  rtable <- cbind("Est"  = fit$par[indr],
-                  "SE"   = sqrt(diag(solve(hess)))[indr],
-                  "Z"    = fit$par[indr]/sqrt(diag(solve(hess)))[indr],
-                  "pval" = 2*pnorm(abs(fit$par[indr]/sqrt(diag(solve(hess)))[indr]), 0., .1, lower=FALSE))
+  rtable <- c()
+  rtable <- cbind(rtable, "Est"  = fit$par[indr])
+  rtable <- cbind(rtable, "SE"   = sqrt(diag(solve(hess)))[indr])
+  rtable <- cbind(rtable, "Z"    = rtable[,"Est"]/rtable[,"SE"])
+  rtable <- cbind(rtable, "pval" = 2.*(1.-pnorm(abs(rtable[,"Z"]))))
   rownames(rtable) <- linear_system$covariates
 
   # fitted values for nuisance parameters
@@ -721,10 +722,11 @@ inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$
   hess <- fit$hessian
 
   # fitted values for resistance parameters
-  rtable <- cbind("Est"  = fit$par,
-                  "SE"   = sqrt(diag(solve(hess))),
-                  "Z"    = fit$par/sqrt(diag(solve(hess))),
-                  "pval" = 2*pnorm(abs(fit$par/sqrt(diag(solve(hess)))), 0., .1, lower=FALSE))
+  rtable <- c()
+  rtable <- cbind(rtable, "Est"  = fit$par)
+  rtable <- cbind(rtable, "SE"   = sqrt(diag(solve(hess))))
+  rtable <- cbind(rtable, "Z"    = rtable[,"Est"]/rtable[,"SE"])
+  rtable <- cbind(rtable, "pval" = 2.*(1.-pnorm(abs(rtable[,"Z"]))))
   rownames(rtable) <- linear_system$covariates
 
   rownames(hess) <- colnames(hess) <- rownames(rtable)
