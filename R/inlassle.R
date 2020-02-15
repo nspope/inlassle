@@ -484,7 +484,7 @@ simulate_inlassleBinomial <- function(linear_system, rpar, npar, nsnp, nchr, see
        chr_count=sampled_chromosomes)
 }
 
-inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linear_system$covariates)+3), maxit=100, parallel=TRUE)
+inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linear_system$covariates)+4), maxit=100, parallel=TRUE)
 {
   if (class(snp) != "matrix" || class(chrom) != "matrix" || class(linear_system) != "inlassle_linear_system")
     stop("Inputs must be: a matrix of allele counts, a matrix of sample sizes, an 'inlassle_linear_system' object")
@@ -492,7 +492,7 @@ inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linea
     stop("Fewer SNPs than demes")
   if (!(all(dim(snp)==dim(chrom))))
     stop("Dimension mismatch in SNP inputs")
-  if (length(start) != length(linear_system$covariates) + 3)
+  if (length(start) != length(linear_system$covariates) + 4)
     stop("Parameter start values are of incorrect length")
   if (nrow(snp) != length(linear_system$coords2demes))
     stop("Number of demes does not match size of linear system")
@@ -516,13 +516,14 @@ inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linea
   N <- ncol(snp)
   n <- nrow(snp)
   indr <- 1:length(linear_system$covariates)
-  indn <- (max(indr)+1):(max(indr)+3)
+  indn <- (max(indr)+1):(max(indr)+4)
   obj <- function(par)
   {
-    rcov <- array(linear_system$solver$resistance_covariance_log(par[indr]), c(n,n,1))
-    ll   <- inlassle:::inlassle_test_Likelihood_cov(chrom, snp, matrix(1,n,1), matrix(1,n,1), rcov, par[indn][1], par[indn][2], par[indn][3], FALSE)#TODO: if Field::linesearch throws warnings and parallel=TRUE this can really f*** up the stack
-    rd   <- linear_system$solver$rd_resistance_covariance_log(ll$gradient_distance[,,1]) #backpropagate
-    ...grad <<- c(rd, ll$gradient) * N #save gradient for later use
+    msd  <- exp(2. * par[indn][1]) # scaling of covariance
+    rcov <- msd * array(linear_system$solver$resistance_covariance_log(par[indr]), c(n,n,1))
+    ll   <- inlassle:::inlassle_test_Likelihood_cov(chrom, snp, matrix(1,n,1), matrix(1,n,1), rcov, par[indn][2], par[indn][3], par[indn][4], FALSE)#TODO: if Field::linesearch throws warnings and parallel=TRUE this can really f*** up the stack
+    rd   <- linear_system$solver$rd_resistance_covariance_log(msd * ll$gradient_distance[,,1]) #backpropagate
+    ...grad <<- c(rd, sum(2. * rcov[,,1] * ll$gradient_distance[,,1]), ll$gradient) * N #save gradient for later use
     return (ll$loglik * N) #multiply by N because inlassle returns avg loglik
   }
   gra <- function(par)
@@ -552,7 +553,7 @@ inlassleBinomial <- function(snp, chrom, linear_system, start=rep(0,length(linea
   # fitted values for nuisance parameters
   ntable <- cbind("Est" = fit$par[indn],
                   "SE"  = sqrt(diag(solve(hess)))[indn])
-  rownames(ntable) <- c("log Std.Dev (SNP)", "log Std.Dev (Deme)", "(Intercept)")
+  rownames(ntable) <- c("log Std.Dev (Resistance)", "log Std.Dev (SNP)", "log Std.Dev (Deme)", "(Intercept)")
 
   rownames(hess) <- colnames(hess) <- c(rownames(rtable),rownames(ntable))
 
@@ -601,12 +602,16 @@ inlassleBinomialGrid <- function(snp, chrom, linear_system, grid, maxit=100, par
   ...rgrad <<- NA
   N <- ncol(snp)
   n <- nrow(snp)
-  indn <- 1:3
+  indn <- 1:4
   obj <- function(par, rcov)
   {
-    ll   <- inlassle:::inlassle_test_Likelihood_cov(chrom, snp, matrix(1,n,1), matrix(1,n,1), rcov, par[indn][1], par[indn][2], par[indn][3], FALSE)#TODO: if Field::linesearch throws warnings and parallel=TRUE this can really f*** up the stack
-    ...grad <<- c(ll$gradient) * N #save gradient for later use
-    ...rgrad <<- linear_system$solver$rd_resistance_covariance_log(ll$gradient_distance[,,1]) * N #save gradient with regard to resistance pars
+    msd  <- exp(2. * par[indn][1]) # scaling of covariance
+    rcov <- msd * rcov
+    ll   <- inlassle:::inlassle_test_Likelihood_cov(chrom, snp, matrix(1,n,1), matrix(1,n,1), rcov, par[indn][2], par[indn][3], par[indn][4], FALSE)#TODO: if Field::linesearch throws warnings and parallel=TRUE this can really f*** up the stack
+    ...grad <<- c(sum(2. * rcov[,,1] * ll$gradient_distance[,,1]), ll$gradient) * N #save gradient for later use
+    # TODO: make "resistance gradient" optional, as it comes with some computational cost
+    rd <- linear_system$solver$rd_resistance_covariance_log(msd * ll$gradient_distance[,,1]) #backpropagate
+    ...rgrad <<- rd * N #save gradient with regard to resistance pars
     return (ll$loglik * N)
   }
   gra <- function(par, rcov)
