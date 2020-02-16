@@ -462,17 +462,17 @@ ResistanceSurface <- function(covariates, coords, directions=4, saveStack=TRUE)
 
 simulate_inlassleBinomial <- function(linear_system, rpar, npar, nsnp, nchr, seed = 0)
 {
-  if (length(npar) != 3)
-    stop ("Length of nuisance parameters must be 3")
+  if (length(npar) != 4)
+    stop ("Length of nuisance parameters must be 4")
   if (length(rpar) != length(linear_system$covariates))
     stop ("Length of resistance parameters must equal number of covariates in linear system")
 
   covariance <- linear_system$solver$resistance_covariance_log(rpar)
 
-  random_intercepts_per_snp <- rnorm(nsnp, npar[3], exp(npar[1]))
+  random_intercepts_per_snp <- rnorm(nsnp, npar[4], exp(npar[2]))
   true_frequencies <- random_intercepts_per_snp + 
     MASS::mvrnorm(nsnp, rep(0,length(linear_system$coords2demes)), 
-                  covariance + diag(rep(exp(npar[2]),length(linear_system$coords2demes))))
+                  exp(2*npar[1])*covariance + diag(rep(exp(npar[3]),length(linear_system$coords2demes))))
   true_frequencies <- t(plogis(true_frequencies))
   sampled_chromosomes <- matrix(nchr, length(linear_system$demes), nsnp) 
   observed_frequencies <- matrix(rbinom(nsnp*length(linear_system$coords2demes), 
@@ -631,7 +631,7 @@ inlassleBinomialGrid <- function(snp, chrom, linear_system, grid, maxit=100, par
   for (i in 1:nrow(grid))
   {
     rcov <- array(linear_system$solver$resistance_covariance_log(grid[i,]), c(n,n,1))
-    fit  <- optim(start, fn=obj, gr=gra, rcov=rcov, method="BFGS", control=list(maxit=maxit))
+    fit  <- optim(start, fn=obj, gr=gra, rcov=rcov, method="L-BFGS-B", control=list(maxit=maxit))
 
     converged <- fit$convergence == 0
     if (!converged)
