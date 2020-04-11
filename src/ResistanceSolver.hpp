@@ -206,7 +206,7 @@ struct map_data_to_conductance : public RcppParallel::Worker
 };
 
 template <class LinkFn>
-struct map_conductance_to_parameters
+struct map_conductance_to_parameters : public RcppParallel::Worker
 {
   const MatrixXd &spatial_data;
   const VectorXd &rd_conductances,
