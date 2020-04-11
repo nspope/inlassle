@@ -412,7 +412,9 @@ ResistanceSurface <- function(covariates, coords, directions=4, saveStack=TRUE)
   for (i in 1:dim(covariates)[3])
   {
     raster::values(covariates[[i]]) <- spdat[,i]
-    cr <- raster::clump(covariates[[i]], directions = directions)
+    cr <- covariates[[i]]
+    raster::values(cr) <- ifelse(is.na(spdat[,i]), NA, 1)
+    cr <- raster::clump(cr, directions = directions)
 
     #remove secondary clumps
     connected_component <- names(which.max(table(raster::getValues(cr))))
