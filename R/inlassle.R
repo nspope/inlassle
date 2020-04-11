@@ -424,7 +424,9 @@ ResistanceSurface <- function(covariates, coords, directions=4, saveStack=TRUE)
   }
 
   # final check that graph is connected after pruning
-  cr <- raster::clump(covariates[[1]], directions = directions)
+  cr <- covariates[[1]]
+  raster::values(cr) <- ifelse(is.na(spdat[,1]), NA, 1)
+  cr <- raster::clump(cr, directions = directions)
   if (length(na.omit(unique(raster::getValues(cr)))) > 1)
     stop("Pruning failed, disconnected components remain")
   if (length(na.omit(unique(raster::getValues(cr)))) == 0)
