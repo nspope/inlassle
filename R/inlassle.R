@@ -404,9 +404,13 @@ ResistanceSurface <- function(covariates, coords, directions=4, saveStack=TRUE)
   if (class(coords) != "SpatialPoints")
     stop("Coordinate input must be class 'SpatialPoints'")
 
-  # share missing cells across layers
-  spdat <- raster::getValues(covariates)
-  spdat[is.na(rowSums(spdat)),] <- NA
+  # share missing cells across layers. 
+  # throw a warning if missing cells are not identical across layers
+  spdat   <- raster::getValues(covariates)
+  missing <- is.na(rowSums(spdat))
+  if (!all(apply(spdat[missing,], 1, function(x) all(is.na(x)))))
+    warning("Missing cells are not identical across rasters: model selection may be untrustworthy")
+  spdat[missing,] <- NA
 
   cat("Pruning disconnected components ...\n")
   for (i in 1:dim(covariates)[3])
