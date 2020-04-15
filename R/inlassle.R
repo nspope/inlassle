@@ -652,7 +652,7 @@ inlassleBinomialGrid <- function(snp, chrom, linear_system, grid, maxit=100, par
   list("Parameters"=grid, "Convergence"=cvout, "Loglik"=llout, "Gradient"=grout, "ResistanceCovariance"=rdout)
 }
 
-inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$covariates)), maxit = 100)
+inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$covariates)), maxit = 100, saveTraj = FALSE)
 {
   if (class(gdist) != "matrix" || class(linear_system) != "inlassle_linear_system")
     stop("Inputs must be: a matrix of genetic distances, an 'inlassle_linear_system' object")
@@ -687,6 +687,7 @@ inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$
 #    diag(rep(1/s, n)) + outer(z*s, -1/((n-1)*s^2) * z) - matrix(1/(n*ss),n,n)
 #  }
 
+  ...traj  <<- if(saveTraj) list() else NA
   ...grad  <<- NA
   ...model <<- NA
   obj <- function(par)
@@ -711,6 +712,9 @@ inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$
 
     ...grad  <<- -linear_system$solver$rd_resistance_distances_log(tmp)
     ...model <<- fit
+
+    if (saveTraj) #for debugging purposes
+      ...traj <<- c(...traj, list(list(model = fit, loglik = -logLik(fit), grad = ...grad, par = par)))
 
     return(-logLik(fit))
   }
@@ -748,7 +752,8 @@ inlassleMLPE <- function(gdist, linear_system, start=rep(0,length(linear_system$
        "Fitted regression"=...model,
        "Hessian"=hess, 
        "Loglik"=loglik, "AIC"=AIC, 
-       "Converged"=converged)
+       "Converged"=converged,
+       "Trajectory"=...traj)
 }
 
 inlassleMLPEGrid <- function(gdist, linear_system, grid, maxit = 100)
